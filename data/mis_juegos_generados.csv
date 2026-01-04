@@ -1,0 +1,9 @@
+fecha_juego,num1,num2,num3,num4,num5,num6,estrategia,puntaje,suma,pares,fecha_generacion,version
+5 de Enero de 2026,2,21,25,31,42,9,mixta,172,121,2,2026-01-04 13:08:24,3.0-dinamico
+5 de Enero de 2026,9,13,16,32,42,13,balanceada,144,112,3,2026-01-04 13:08:24,3.0-dinamico
+5 de Enero de 2026,5,6,23,30,40,5,fria,93,104,3,2026-01-04 13:08:23,3.0-dinamico
+5 de Enero de 2026,1,9,21,32,43,13,caliente,137,106,1,2026-01-04 13:08:23,3.0-dinamico
+3 de Enero de 2026,9,10,16,21,36,9,mixta,105,92,3,2026-01-03 22:40:42,2.2
+3 de Enero de 2026,7,13,14,16,43,15,balanceada,85,93,2,2026-01-03 22:40:28,2.2
+3 de Enero de 2026,3,13,16,30,38,14,fria,75,100,3,2026-01-03 22:40:13,2.2
+3 de Enero de 2026,8,22,25,27,32,9,caliente,110,114,3,2026-01-03 22:37:09,2.2

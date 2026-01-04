@@ -1,0 +1,23 @@
+{
+  "strategy": "balanceada",
+  "numbers": [
+    9,
+    43,
+    21,
+    5,
+    2,
+    25,
+    42
+  ],
+  "superballots": [
+    13,
+    11,
+    6
+  ],
+  "patterns": [
+    "Usar 2.0 números pares",
+    "Suma objetivo: 92-128"
+  ],
+  "confidence": 0.95,
+  "timestamp": "2026-01-04T11:17:45.836560"
+}

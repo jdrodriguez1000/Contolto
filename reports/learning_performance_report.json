@@ -1,0 +1,57 @@
+{
+  "timestamp": "2026-01-04T11:17:45.828616",
+  "knowledge_stats": {
+    "total_cycles": 20,
+    "update_count": 20,
+    "main_numbers_tracked": 43,
+    "superballots_tracked": 16
+  },
+  "current_recommendations": {
+    "strategy": "balanceada",
+    "numbers": [
+      9,
+      43,
+      21,
+      5,
+      2,
+      25,
+      42
+    ],
+    "superballots": [
+      13,
+      11,
+      6
+    ],
+    "patterns": [
+      "Usar 2.0 números pares",
+      "Suma objetivo: 92-128"
+    ],
+    "confidence": 0.95,
+    "timestamp": "2026-01-04T11:17:45.828616"
+  },
+  "top_performers": {
+    "by_appearances": [
+      {
+        "number": 9,
+        "appearances": 75
+      },
+      {
+        "number": 43,
+        "appearances": 73
+      },
+      {
+        "number": 21,
+        "appearances": 71
+      },
+      {
+        "number": 5,
+        "appearances": 70
+      },
+      {
+        "number": 2,
+        "appearances": 70
+      }
+    ]
+  },
+  "improvement_suggestions": []
+}

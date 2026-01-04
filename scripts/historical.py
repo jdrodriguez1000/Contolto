@@ -5,6 +5,7 @@ import time
 import random
 import csv
 import os
+import sys
 from datetime import datetime 
 
 # --- CONFIGURACIÓN DE NÚMEROS DE LOTERÍA ---
@@ -16,8 +17,10 @@ NUM_MIN_SUPERBALOTA = 1
 NUM_MAX_SUPERBALOTA = 16
 CANTIDAD_SUPERBALOTA = 1
 
-# --- CONFIGURACIÓN DEL ARCHIVO HISTÓRICO ---
-HISTORICO_CSV_FILE = "baloto_historico_completo.csv" 
+# --- CONFIGURACIÓN DE RUTAS ACTUALIZADAS ---
+# ARCHIVO HISTÓRICO en la carpeta data/
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+HISTORICO_CSV_FILE = os.path.join(BASE_DIR, "data", "baloto_historico_completo.csv")
 CSV_HEADERS_FULL = ["tipo", "fecha", "num1", "num2", "num3", "num4", "num5", "num6"]
 
 # --- FUNCIONES AUXILIARES ---
@@ -193,7 +196,7 @@ def obtener_nuevos_resultados_baloto_incremental(base_url, ultima_fecha_local=No
     nuevos_sorteos_list.sort(key=lambda x: parse_baloto_date(x['fecha']), reverse=True)
     return nuevos_sorteos_list, nuevos_sorteos_set
 
-# --- FUNCIONES DE MANEJO DE CSV (sin cambios significativos, solo aclaraciones) ---
+# --- FUNCIONES DE MANEJO DE CSV ---
 
 def cargar_historico_desde_csv(file_path):
     """
@@ -259,6 +262,9 @@ def guardar_historico_en_csv(file_path, historico_completo_list):
     Guarda la lista de diccionarios de sorteos completos en un archivo CSV.
     """
     try:
+        # Crear la carpeta data si no existe
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        
         with open(file_path, mode='w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=CSV_HEADERS_FULL)
             writer.writeheader() 
@@ -326,7 +332,6 @@ if __name__ == "__main__":
     # Esto es crucial para asegurar que el orden sea correcto después de la fusión.
     print("Re-ordenando el histórico final por fecha para asegurar la consistencia...")
     final_historico_list.sort(key=lambda x: parse_baloto_date(x['fecha']), reverse=True)
-
 
     # 5. Guardar el histórico fusionado y ordenado en el CSV
     if final_historico_list:

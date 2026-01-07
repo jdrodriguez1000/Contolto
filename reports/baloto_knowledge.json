@@ -1,9 +1,14 @@
 {
   "version": "2.1",
-  "created_date": "2026-01-03T22:37:09.082385",
-  "last_updated": "2026-01-05T15:14:48.329465",
+  "created_date": "2026-01-07T10:13:21.838725",
+  "last_updated": "2026-01-07T10:13:21.917836",
   "number_performance": {
     "main_numbers": {
+      "9": {
+        "appearances": 76,
+        "hits": 0,
+        "hit_rate": 0.0
+      },
       "22": {
         "appearances": 66,
         "hits": 0,
@@ -69,11 +74,6 @@
         "hits": 0,
         "hit_rate": 0.0
       },
-      "9": {
-        "appearances": 75,
-        "hits": 0,
-        "hit_rate": 0.0
-      },
       "27": {
         "appearances": 62,
         "hits": 0,
@@ -95,7 +95,7 @@
         "hit_rate": 0.0
       },
       "13": {
-        "appearances": 53,
+        "appearances": 54,
         "hits": 0,
         "hit_rate": 0.0
       },
@@ -130,7 +130,7 @@
         "hit_rate": 0.0
       },
       "31": {
-        "appearances": 57,
+        "appearances": 58,
         "hits": 0,
         "hit_rate": 0.0
       },
@@ -155,7 +155,7 @@
         "hit_rate": 0.0
       },
       "28": {
-        "appearances": 58,
+        "appearances": 59,
         "hits": 0,
         "hit_rate": 0.0
       },
@@ -170,7 +170,7 @@
         "hit_rate": 0.0
       },
       "35": {
-        "appearances": 61,
+        "appearances": 62,
         "hits": 0,
         "hit_rate": 0.0
       },
@@ -221,6 +221,16 @@
       }
     },
     "superballots": {
+      "2": {
+        "appearances": 25,
+        "hits": 0,
+        "hit_rate": 0.0
+      },
+      "5": {
+        "appearances": 27,
+        "hits": 0,
+        "hit_rate": 0.0
+      },
       "8": {
         "appearances": 25,
         "hits": 0,
@@ -241,18 +251,8 @@
         "hits": 0,
         "hit_rate": 0.0
       },
-      "5": {
-        "appearances": 27,
-        "hits": 0,
-        "hit_rate": 0.0
-      },
       "7": {
         "appearances": 36,
-        "hits": 0,
-        "hit_rate": 0.0
-      },
-      "2": {
-        "appearances": 24,
         "hits": 0,
         "hit_rate": 0.0
       },
@@ -307,254 +307,14 @@
   "successful_patterns": {
     "even_odd_ratios": [
       {
-        "timestamp": "2026-01-03T22:37:09.121342",
-        "mean_even": 2.414258188824663,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-03T22:40:13.641833",
-        "mean_even": 2.414258188824663,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-03T22:40:28.011493",
-        "mean_even": 2.414258188824663,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-03T22:40:42.171352",
-        "mean_even": 2.414258188824663,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-04T09:55:56.862869",
-        "mean_even": 2.4153846153846152,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-04T10:06:47.499357",
-        "mean_even": 2.4153846153846152,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-04T10:17:54.324348",
-        "mean_even": 2.4153846153846152,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-04T10:19:36.575746",
-        "mean_even": 2.4153846153846152,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-04T10:31:10.628252",
-        "mean_even": 2.4153846153846152,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-04T10:36:31.560560",
-        "mean_even": 2.4153846153846152,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-04T10:41:05.673904",
-        "mean_even": 2.4153846153846152,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-04T10:44:22.714781",
-        "mean_even": 2.4153846153846152,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-04T10:44:56.520611",
-        "mean_even": 2.4153846153846152,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-04T10:49:29.382440",
-        "mean_even": 2.4153846153846152,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-04T10:54:14.138709",
-        "mean_even": 2.4153846153846152,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-04T10:57:03.268398",
-        "mean_even": 2.4153846153846152,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-04T10:57:59.298284",
-        "mean_even": 2.4153846153846152,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-04T11:01:03.949852",
-        "mean_even": 2.4153846153846152,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-04T11:16:53.052093",
-        "mean_even": 2.4153846153846152,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-04T11:17:45.812415",
-        "mean_even": 2.4153846153846152,
-        "mode_even": 2.0
-      },
-      {
-        "timestamp": "2026-01-05T15:14:48.313481",
-        "mean_even": 2.4153846153846152,
+        "timestamp": "2026-01-07T10:13:21.907821",
+        "mean_even": 2.412667946257198,
         "mode_even": 2.0
       }
     ],
     "sum_ranges": [
       {
-        "timestamp": "2026-01-03T22:37:09.121342",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-03T22:40:13.641833",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-03T22:40:28.011493",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-03T22:40:42.171352",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-04T09:55:56.862869",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-04T10:06:47.499357",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-04T10:17:54.324348",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-04T10:19:36.575746",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-04T10:31:10.628252",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-04T10:36:31.560560",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-04T10:41:05.673904",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-04T10:44:22.714781",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-04T10:44:56.520611",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-04T10:49:29.382440",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-04T10:54:14.138709",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-04T10:57:03.268398",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-04T10:57:59.298284",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-04T11:01:03.949852",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-04T11:16:53.052093",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-04T11:17:45.812415",
-        "optimal_range": [
-          92.0,
-          128.0
-        ]
-      },
-      {
-        "timestamp": "2026-01-05T15:14:48.313481",
+        "timestamp": "2026-01-07T10:13:21.907821",
         "optimal_range": [
           92.0,
           128.0
@@ -586,282 +346,23 @@
     "avoid_patterns": []
   },
   "improvement_stats": {
-    "total_analysis_cycles": 21,
+    "total_analysis_cycles": 1,
     "accuracy_improvement": 0.0,
     "last_hit_rate": 0.0
   },
   "update_history": [
     {
-      "timestamp": "2026-01-03T22:37:09.121342",
+      "timestamp": "2026-01-07T10:13:21.907821",
       "insights_keys": [
         "winning_patterns",
         "number_frequency",
         "superballot_frequency",
+        "my_performance",
         "strategy_analysis",
         "recommendations",
         "optimal_parameters"
       ],
       "analysis_cycle": 1
-    },
-    {
-      "timestamp": "2026-01-03T22:40:13.641833",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 2
-    },
-    {
-      "timestamp": "2026-01-03T22:40:28.011493",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 3
-    },
-    {
-      "timestamp": "2026-01-03T22:40:42.171352",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 4
-    },
-    {
-      "timestamp": "2026-01-04T09:55:56.862869",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 5
-    },
-    {
-      "timestamp": "2026-01-04T10:06:47.499357",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 6
-    },
-    {
-      "timestamp": "2026-01-04T10:17:54.324348",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 7
-    },
-    {
-      "timestamp": "2026-01-04T10:19:36.575746",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 8
-    },
-    {
-      "timestamp": "2026-01-04T10:31:10.628252",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 9
-    },
-    {
-      "timestamp": "2026-01-04T10:36:31.560560",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 10
-    },
-    {
-      "timestamp": "2026-01-04T10:41:05.673904",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 11
-    },
-    {
-      "timestamp": "2026-01-04T10:44:22.714781",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 12
-    },
-    {
-      "timestamp": "2026-01-04T10:44:56.520611",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 13
-    },
-    {
-      "timestamp": "2026-01-04T10:49:29.382440",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 14
-    },
-    {
-      "timestamp": "2026-01-04T10:54:14.138709",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 15
-    },
-    {
-      "timestamp": "2026-01-04T10:57:03.268398",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 16
-    },
-    {
-      "timestamp": "2026-01-04T10:57:59.298284",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 17
-    },
-    {
-      "timestamp": "2026-01-04T11:01:03.949852",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 18
-    },
-    {
-      "timestamp": "2026-01-04T11:16:53.052093",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 19
-    },
-    {
-      "timestamp": "2026-01-04T11:17:45.812415",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 20
-    },
-    {
-      "timestamp": "2026-01-05T15:14:48.313481",
-      "insights_keys": [
-        "winning_patterns",
-        "number_frequency",
-        "superballot_frequency",
-        "my_performance",
-        "strategy_analysis",
-        "recommendations",
-        "optimal_parameters"
-      ],
-      "analysis_cycle": 21
     }
   ]
 }

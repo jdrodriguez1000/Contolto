@@ -3,8 +3,8 @@
   "numbers": [
     9,
     43,
-    21,
     5,
+    21,
     2,
     25,
     42
@@ -12,12 +12,12 @@
   "superballots": [
     13,
     11,
-    6
+    7
   ],
   "patterns": [
     "Usar 2.0 números pares",
     "Suma objetivo: 92-128"
   ],
   "confidence": 0.95,
-  "timestamp": "2026-01-07T10:13:21.924149"
+  "timestamp": "2026-01-10T10:12:12.495164"
 }

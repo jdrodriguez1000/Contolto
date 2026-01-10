@@ -1,11 +1,11 @@
 {
   "version": "2.1",
   "created_date": "2026-01-07T10:13:21.838725",
-  "last_updated": "2026-01-07T10:13:21.917836",
+  "last_updated": "2026-01-10T10:12:12.467716",
   "number_performance": {
     "main_numbers": {
       "9": {
-        "appearances": 76,
+        "appearances": 77,
         "hits": 0,
         "hit_rate": 0.0
       },
@@ -20,7 +20,7 @@
         "hit_rate": 0.0
       },
       "5": {
-        "appearances": 70,
+        "appearances": 71,
         "hits": 0,
         "hit_rate": 0.0
       },
@@ -150,12 +150,12 @@
         "hit_rate": 0.0
       },
       "32": {
-        "appearances": 67,
+        "appearances": 68,
         "hits": 0,
         "hit_rate": 0.0
       },
       "28": {
-        "appearances": 59,
+        "appearances": 60,
         "hits": 0,
         "hit_rate": 0.0
       },
@@ -170,7 +170,7 @@
         "hit_rate": 0.0
       },
       "35": {
-        "appearances": 62,
+        "appearances": 63,
         "hits": 0,
         "hit_rate": 0.0
       },
@@ -252,7 +252,7 @@
         "hit_rate": 0.0
       },
       "7": {
-        "appearances": 36,
+        "appearances": 37,
         "hits": 0,
         "hit_rate": 0.0
       },
@@ -310,6 +310,21 @@
         "timestamp": "2026-01-07T10:13:21.907821",
         "mean_even": 2.412667946257198,
         "mode_even": 2.0
+      },
+      {
+        "timestamp": "2026-01-08T08:02:36.313719",
+        "mean_even": 2.4118773946360155,
+        "mode_even": 2.0
+      },
+      {
+        "timestamp": "2026-01-08T08:03:40.306684",
+        "mean_even": 2.4118773946360155,
+        "mode_even": 2.0
+      },
+      {
+        "timestamp": "2026-01-10T10:12:12.430555",
+        "mean_even": 2.4118773946360155,
+        "mode_even": 2.0
       }
     ],
     "sum_ranges": [
@@ -317,6 +332,27 @@
         "timestamp": "2026-01-07T10:13:21.907821",
         "optimal_range": [
           92.0,
+          128.0
+        ]
+      },
+      {
+        "timestamp": "2026-01-08T08:02:36.313719",
+        "optimal_range": [
+          92.25,
+          128.0
+        ]
+      },
+      {
+        "timestamp": "2026-01-08T08:03:40.306684",
+        "optimal_range": [
+          92.25,
+          128.0
+        ]
+      },
+      {
+        "timestamp": "2026-01-10T10:12:12.430555",
+        "optimal_range": [
+          92.25,
           128.0
         ]
       }
@@ -331,8 +367,8 @@
     "hot_numbers": [
       9,
       43,
-      21,
       5,
+      21,
       2,
       25,
       42
@@ -341,12 +377,12 @@
     "optimal_superballots": [
       13,
       11,
-      6
+      7
     ],
     "avoid_patterns": []
   },
   "improvement_stats": {
-    "total_analysis_cycles": 1,
+    "total_analysis_cycles": 4,
     "accuracy_improvement": 0.0,
     "last_hit_rate": 0.0
   },
@@ -363,6 +399,45 @@
         "optimal_parameters"
       ],
       "analysis_cycle": 1
+    },
+    {
+      "timestamp": "2026-01-08T08:02:36.313719",
+      "insights_keys": [
+        "winning_patterns",
+        "number_frequency",
+        "superballot_frequency",
+        "my_performance",
+        "strategy_analysis",
+        "recommendations",
+        "optimal_parameters"
+      ],
+      "analysis_cycle": 2
+    },
+    {
+      "timestamp": "2026-01-08T08:03:40.306684",
+      "insights_keys": [
+        "winning_patterns",
+        "number_frequency",
+        "superballot_frequency",
+        "my_performance",
+        "strategy_analysis",
+        "recommendations",
+        "optimal_parameters"
+      ],
+      "analysis_cycle": 3
+    },
+    {
+      "timestamp": "2026-01-10T10:12:12.430555",
+      "insights_keys": [
+        "winning_patterns",
+        "number_frequency",
+        "superballot_frequency",
+        "my_performance",
+        "strategy_analysis",
+        "recommendations",
+        "optimal_parameters"
+      ],
+      "analysis_cycle": 4
     }
   ]
 }

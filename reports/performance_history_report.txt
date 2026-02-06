@@ -1,0 +1,32 @@
+
+[ REPORTE DETALLADO DE RENDIMIENTO - CONTOLTO v2 ]
+==========================================================================================
+FECHA        | ESTRATEGIA   | S.B | JUGADA (N1-N5 + SB)    | GANADORA (N1-N5 + SB)  | ACIERTOS
+--------------------------------------------------------------------------------------------------------------
+2026-02-04   | MIXTA        | NO  | [2, 5, 26, 30, 43] + 7 | [1, 8, 10, 19, 26] + 9 | 0        (Coinciden: 26)
+2026-02-04   | BALANCEADA   | NO  | [9, 10, 14, 25, 40] + 10 | [1, 8, 10, 19, 26] + 9 | 1        (Coinciden: 10)
+2026-02-04   | FRIA         | NO  | [6, 7, 23, 40, 43] + 2 | [1, 8, 10, 19, 26] + 9 | 0        (Coinciden: Ninguno)
+2026-02-04   | CALIENTE     | NO  | [5, 9, 21, 22, 43] + 7 | [1, 8, 10, 19, 26] + 9 | 0        (Coinciden: Ninguno)
+2026-02-02   | MIXTA        | NO  | [2, 5, 21, 38, 43] + 7 | [6, 8, 19, 21, 30] + 9 | 0        (Coinciden: 21)
+2026-02-02   | MIXTA        | NO  | [2, 9, 25, 42, 43] + 7 | [6, 8, 19, 21, 30] + 9 | 0        (Coinciden: Ninguno)
+2026-02-02   | BALANCEADA   | NO  | [3, 10, 14, 32, 43] + 4 | [6, 8, 19, 21, 30] + 9 | 0        (Coinciden: Ninguno)
+2026-02-02   | FRIA         | NO  | [10, 16, 21, 30, 40] + 4 | [6, 8, 19, 21, 30] + 9 | 1        (Coinciden: 21,30)
+2026-02-02   | CALIENTE     | NO  | [1, 5, 21, 22, 42] + 13 | [6, 8, 19, 21, 30] + 9 | 0        (Coinciden: 21)
+2026-01-31   | REAL         | NO  | [3, 13, 16, 23, 41] + 5 | [8, 12, 20, 24, 36] + 4 | 1        (Coinciden: Ninguno)
+2026-01-31   | MIXTA        | NO  | [2, 9, 21, 25, 42] + 2 | [8, 12, 20, 24, 36] + 4 | 1        (Coinciden: Ninguno)
+2026-01-31   | BALANCEADA   | NO  | [6, 9, 10, 32, 42] + 10 | [8, 12, 20, 24, 36] + 4 | 2        (Coinciden: Ninguno)
+2026-01-31   | FRIA         | NO  | [10, 13, 16, 21, 40] + 16 | [8, 12, 20, 24, 36] + 4 | 1        (Coinciden: Ninguno)
+2026-01-31   | CALIENTE     | NO  | [5, 9, 21, 22, 42] + 7 | [8, 12, 20, 24, 36] + 4 | 1        (Coinciden: Ninguno)
+2026-02-04   | REAL         | NO  | [9, 23, 32, 38, 42] + 13 | [1, 8, 10, 19, 26] + 9 | 1        (Coinciden: Ninguno)
+
+==========================================================================================
+[ RANKING DE ESTRATEGIAS - ALL TIME ]
+------------------------------------------------------------------------------------------
+REAL         | Promedio: 0.83 | S.B. Ganadas: 0 | Total Juegos: 6
+FRIA         | Promedio: 0.69 | S.B. Ganadas: 1 | Total Juegos: 16
+CALIENTE     | Promedio: 0.62 | S.B. Ganadas: 0 | Total Juegos: 16
+MIXTA        | Promedio: 0.53 | S.B. Ganadas: 0 | Total Juegos: 17
+BALANCEADA   | Promedio: 0.50 | S.B. Ganadas: 2 | Total Juegos: 16
+==========================================================================================
+Reporte generado el: 2026-02-06 16:07:09
+Nota: El reporte muestra cuales numeros especificos muerden la suerte.

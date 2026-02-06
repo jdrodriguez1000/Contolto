@@ -1,0 +1,60 @@
+{
+    "metadata": {
+        "fecha_generacion": "2026-02-06 16:00:21",
+        "fecha_sorteo_objetivo": "2026-02-07",
+        "mejor_estrategia_detectada": "real",
+        "reglas_temporales": "Mon-Wed-Sat, Cutoff 8:00 PM"
+    },
+    "juegos": [
+        {
+            "fecha_sorteo": "2026-02-07",
+            "estrategia": "caliente",
+            "num1": 6,
+            "num2": 15,
+            "num3": 18,
+            "num4": 36,
+            "num5": 40,
+            "num6": 3
+        },
+        {
+            "fecha_sorteo": "2026-02-07",
+            "estrategia": "fria",
+            "num1": 10,
+            "num2": 12,
+            "num3": 15,
+            "num4": 34,
+            "num5": 43,
+            "num6": 3
+        },
+        {
+            "fecha_sorteo": "2026-02-07",
+            "estrategia": "mixta",
+            "num1": 10,
+            "num2": 17,
+            "num3": 32,
+            "num4": 33,
+            "num5": 39,
+            "num6": 3
+        },
+        {
+            "fecha_sorteo": "2026-02-07",
+            "estrategia": "balanceada",
+            "num1": 9,
+            "num2": 13,
+            "num3": 25,
+            "num4": 31,
+            "num5": 43,
+            "num6": 3
+        },
+        {
+            "fecha_sorteo": "2026-02-07",
+            "estrategia": "real",
+            "num1": 6,
+            "num2": 19,
+            "num3": 26,
+            "num4": 32,
+            "num5": 36,
+            "num6": 3
+        }
+    ]
+}

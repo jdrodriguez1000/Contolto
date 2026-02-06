@@ -71,6 +71,10 @@ class DBProvider:
     def get_cold_numbers(self):
         """Obtiene los números con mayor tiempo sin salir (Gaps)"""
         # Lógica para encontrar los números que NO están en los últimos sorteos
+<<<<<<< HEAD
+=======
+        # (Simulada para esta versión centralizada)
+>>>>>>> 560828e981488937da4f742682cf17e615908246
         response = self.supabase.table("historial")\
             .select("num1, num2, num3, num4, num5")\
             .eq("tipo", "Baloto")\

@@ -101,6 +101,7 @@ class ResultsUpdater:
         """Calcula el rendimiento de juegos que no tienen registro en la tabla rendimiento"""
         print("\n📊 Calculando rendimiento de juegos pendientes...")
         
+<<<<<<< HEAD
         # 1. Traer juegos que no tienen entrada en rendimiento usando un LEFT JOIN simulado (o consulta directa)
         # En Supabase/PostgREST es más fácil traer los juegos y filtrar localmente o usar un rpc
         query = """
@@ -111,6 +112,8 @@ class ResultsUpdater:
         """
         # Usamos rpc porque la sintaxis de join de postgrest es compleja para "not in"
         # Pero podemos hacerlo simple: Traer juegos y luego filtrar en Python
+=======
+>>>>>>> 560828e981488937da4f742682cf17e615908246
         juegos = self.db.supabase.table("juegos").select("*").execute().data
         rendimiento_ids = [r['juego_id'] for r in self.db.supabase.table("rendimiento").select("juego_id").execute().data]
         
@@ -129,7 +132,10 @@ class ResultsUpdater:
             
             if ganador:
                 ganador = ganador[0]
+<<<<<<< HEAD
                 # Lógica de comparación
+=======
+>>>>>>> 560828e981488937da4f742682cf17e615908246
                 principales_ganadores = {ganador['num1'], ganador['num2'], ganador['num3'], ganador['num4'], ganador['num5']}
                 principales_jugados = {juego['num1'], juego['num2'], juego['num3'], juego['num4'], juego['num5']}
                 

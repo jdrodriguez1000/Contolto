@@ -18,22 +18,15 @@ class PerformanceReporter:
         output = io.StringIO()
         
         def smart_print(text=""):
-<<<<<<< HEAD
             # Imprime a la consola
             print(text)
             # Acumula para el archivo
-=======
-            print(text)
->>>>>>> 560828e981488937da4f742682cf17e615908246
             output.write(text + "\n")
 
         smart_print("\n[ REPORTE DETALLADO DE RENDIMIENTO - CONTOLTO v2 ]")
         smart_print("=" * 90)
 
-<<<<<<< HEAD
         # 1. Obtener los últimos 15 registros de rendimiento calificados
-=======
->>>>>>> 560828e981488937da4f742682cf17e615908246
         rendimiento_data = self.db.supabase.table("rendimiento")\
             .select("*, juegos(*)")\
             .order("created_at", desc=True)\
@@ -44,20 +37,14 @@ class PerformanceReporter:
             smart_print("(!) No hay datos de rendimiento calificados aun.")
             return
 
-<<<<<<< HEAD
         # Obtener todas las fechas únicas para traer el historial de una sola vez
-=======
->>>>>>> 560828e981488937da4f742682cf17e615908246
         fechas = list(set([r['juegos']['fecha_sorteo'] for r in rendimiento_data if r.get('juegos')]))
         historial_raw = self.db.supabase.table("historial")\
             .select("*")\
             .in_("fecha", fechas)\
             .execute().data
         
-<<<<<<< HEAD
         # Mapear historial por fecha para acceso rápido
-=======
->>>>>>> 560828e981488937da4f742682cf17e615908246
         historial_map = {h['fecha']: h for h in historial_raw}
 
         header = f"{'FECHA':<12} | {'ESTRATEGIA':<12} | {'S.B':<3} | {'JUGADA (N1-N5 + SB)':<22} | {'GANADORA (N1-N5 + SB)':<22} | {'ACIERTOS'}"
@@ -74,28 +61,18 @@ class PerformanceReporter:
             sb_jugada = juego['num6']
             
             ganador = historial_map.get(fecha)
-<<<<<<< HEAD
             if not ganador:
                 continue
-=======
-            if not ganador: continue
->>>>>>> 560828e981488937da4f742682cf17e615908246
 
             num_ganadores = [ganador[f'num{i}'] for i in range(1, 6)]
             sb_ganadora = ganador['num6']
             
-<<<<<<< HEAD
             # Identificar coincidencias
-=======
->>>>>>> 560828e981488937da4f742682cf17e615908246
             coincidencias = set(num_jugados).intersection(set(num_ganadores))
             matches_str = ",".join(map(str, sorted(list(coincidencias)))) if coincidencias else "Ninguno"
             acierto_sb = "OK" if sb_jugada == sb_ganadora else "NO"
             
-<<<<<<< HEAD
             # Formateo de jugada y ganadora
-=======
->>>>>>> 560828e981488937da4f742682cf17e615908246
             jugada_str = f"{num_jugados} + {sb_jugada}"
             ganadora_str = f"{num_ganadores} + {sb_ganadora}"
             
@@ -105,10 +82,7 @@ class PerformanceReporter:
             linea = f"{fecha:<12} | {estrategia:<12} | {acierto_sb:<3} | {jugada_str:<22} | {ganadora_str:<22} | {resumen_aciertos:<8} (Coinciden: {matches_str})"
             smart_print(linea)
 
-<<<<<<< HEAD
         # 2. Ranking de Estrategias
-=======
->>>>>>> 560828e981488937da4f742682cf17e615908246
         smart_print("\n" + "=" * 90)
         smart_print("[ RANKING DE ESTRATEGIAS - ALL TIME ]")
         smart_print("-" * 90)
@@ -122,12 +96,8 @@ class PerformanceReporter:
                 ranking[est] = {"total": 0, "sum_aciertos": 0, "sb": 0}
             ranking[est]["total"] += 1
             ranking[est]["sum_aciertos"] += p['aciertos_principales']
-<<<<<<< HEAD
             if p['acierto_superbalota']:
                 ranking[est]["sb"] += 1
-=======
-            if p['acierto_superbalota']: ranking[est]["sb"] += 1
->>>>>>> 560828e981488937da4f742682cf17e615908246
         
         sorted_ranking = sorted(ranking.items(), key=lambda x: x[1]["sum_aciertos"]/x[1]["total"] if x[1]["total"] > 0 else 0, reverse=True)
 
@@ -137,24 +107,16 @@ class PerformanceReporter:
 
         smart_print("=" * 90)
         smart_print(f"Reporte generado el: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-<<<<<<< HEAD
         smart_print("Nota: El reporte muestra cuales numeros especificos muerden la suerte.")
 
         # Guardar en archivo
-=======
-
->>>>>>> 560828e981488937da4f742682cf17e615908246
         try:
             os.makedirs("reports", exist_ok=True)
             with open(self.report_path, "w", encoding="utf-8") as f:
                 f.write(output.getvalue())
-<<<<<<< HEAD
             print(f"\n[OK] Copia detallada guardada en: {self.report_path}")
         except Exception as e:
             print(f"\n[!] Error al guardar el archivo: {e}")
-=======
-        except Exception: pass
->>>>>>> 560828e981488937da4f742682cf17e615908246
 
 if __name__ == "__main__":
     reporter = PerformanceReporter()

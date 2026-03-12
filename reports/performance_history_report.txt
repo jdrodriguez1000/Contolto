@@ -3,30 +3,33 @@
 ==========================================================================================
 FECHA        | ESTRATEGIA   | S.B | JUGADA (N1-N5 + SB)    | GANADORA (N1-N5 + SB)  | ACIERTOS
 --------------------------------------------------------------------------------------------------------------
-2026-02-04   | MIXTA        | NO  | [2, 5, 26, 30, 43] + 7 | [1, 8, 10, 19, 26] + 9 | 0        (Coinciden: 26)
-2026-02-04   | BALANCEADA   | NO  | [9, 10, 14, 25, 40] + 10 | [1, 8, 10, 19, 26] + 9 | 1        (Coinciden: 10)
-2026-02-04   | FRIA         | NO  | [6, 7, 23, 40, 43] + 2 | [1, 8, 10, 19, 26] + 9 | 0        (Coinciden: Ninguno)
-2026-02-04   | CALIENTE     | NO  | [5, 9, 21, 22, 43] + 7 | [1, 8, 10, 19, 26] + 9 | 0        (Coinciden: Ninguno)
-2026-02-02   | MIXTA        | NO  | [2, 5, 21, 38, 43] + 7 | [6, 8, 19, 21, 30] + 9 | 0        (Coinciden: 21)
-2026-02-02   | MIXTA        | NO  | [2, 9, 25, 42, 43] + 7 | [6, 8, 19, 21, 30] + 9 | 0        (Coinciden: Ninguno)
-2026-02-02   | BALANCEADA   | NO  | [3, 10, 14, 32, 43] + 4 | [6, 8, 19, 21, 30] + 9 | 0        (Coinciden: Ninguno)
-2026-02-02   | FRIA         | NO  | [10, 16, 21, 30, 40] + 4 | [6, 8, 19, 21, 30] + 9 | 1        (Coinciden: 21,30)
-2026-02-02   | CALIENTE     | NO  | [1, 5, 21, 22, 42] + 13 | [6, 8, 19, 21, 30] + 9 | 0        (Coinciden: 21)
-2026-01-31   | REAL         | NO  | [3, 13, 16, 23, 41] + 5 | [8, 12, 20, 24, 36] + 4 | 1        (Coinciden: Ninguno)
-2026-01-31   | MIXTA        | NO  | [2, 9, 21, 25, 42] + 2 | [8, 12, 20, 24, 36] + 4 | 1        (Coinciden: Ninguno)
-2026-01-31   | BALANCEADA   | NO  | [6, 9, 10, 32, 42] + 10 | [8, 12, 20, 24, 36] + 4 | 2        (Coinciden: Ninguno)
-2026-01-31   | FRIA         | NO  | [10, 13, 16, 21, 40] + 16 | [8, 12, 20, 24, 36] + 4 | 1        (Coinciden: Ninguno)
-2026-01-31   | CALIENTE     | NO  | [5, 9, 21, 22, 42] + 7 | [8, 12, 20, 24, 36] + 4 | 1        (Coinciden: Ninguno)
-2026-02-04   | REAL         | NO  | [9, 23, 32, 38, 42] + 13 | [1, 8, 10, 19, 26] + 9 | 1        (Coinciden: Ninguno)
+2026-03-09   | ALEATORIA    | NO  | [8, 29, 31, 39, 40] + 4 | [5, 7, 8, 25, 29] + 14 | 2        (Coinciden: 8,29)
+2026-03-09   | UNICA        | NO  | [7, 10, 17, 38, 42] + 7 | [5, 7, 8, 25, 29] + 14 | 1        (Coinciden: 7)
+2026-03-09   | REAL         | NO  | [12, 15, 26, 33, 41] + 10 | [5, 7, 8, 25, 29] + 14 | 0        (Coinciden: Ninguno)
+2026-03-09   | ELITE        | NO  | [12, 19, 21, 26, 38] + 10 | [5, 7, 8, 25, 29] + 14 | 0        (Coinciden: Ninguno)
+2026-03-09   | BALANCEADA   | OK  | [3, 19, 25, 32, 42] + 14 | [5, 7, 8, 25, 29] + 14 | 1 (+SB)  (Coinciden: 25)
+2026-03-09   | MIXTA        | NO  | [5, 11, 24, 26, 31] + 10 | [5, 7, 8, 25, 29] + 14 | 1        (Coinciden: 5)
+2026-03-09   | FRIA         | NO  | [5, 10, 24, 35, 37] + 8 | [5, 7, 8, 25, 29] + 14 | 1        (Coinciden: 5)
+2026-03-09   | CALIENTE     | OK  | [7, 13, 21, 26, 42] + 14 | [5, 7, 8, 25, 29] + 14 | 1 (+SB)  (Coinciden: 7)
+2026-03-07   | UNICA        | NO  | [7, 10, 17, 38, 42] + 7 | [3, 11, 30, 38, 41] + 4 | 1        (Coinciden: 38)
+2026-03-07   | BALANCEADA   | NO  | [1, 20, 30, 32, 43] + 1 | [3, 11, 30, 38, 41] + 4 | 1        (Coinciden: 30)
+2026-03-07   | REAL         | NO  | [3, 6, 18, 21, 42] + 10 | [3, 11, 30, 38, 41] + 4 | 1        (Coinciden: 3)
+2026-03-07   | CALIENTE     | NO  | [2, 9, 15, 21, 42] + 14 | [3, 11, 30, 38, 41] + 4 | 0        (Coinciden: Ninguno)
+2026-03-07   | FRIA         | OK  | [3, 5, 10, 19, 37] + 4 | [3, 11, 30, 38, 41] + 4 | 1 (+SB)  (Coinciden: 3)
+2026-03-07   | MIXTA        | OK  | [5, 10, 12, 26, 38] + 4 | [3, 11, 30, 38, 41] + 4 | 1 (+SB)  (Coinciden: 38)
+2026-03-04   | UNICA        | NO  | [10, 17, 21, 38, 42] + 7 | [21, 26, 32, 34, 40] + 12 | 1        (Coinciden: 21)
 
 ==========================================================================================
 [ RANKING DE ESTRATEGIAS - ALL TIME ]
 ------------------------------------------------------------------------------------------
-REAL         | Promedio: 0.83 | S.B. Ganadas: 0 | Total Juegos: 6
-FRIA         | Promedio: 0.69 | S.B. Ganadas: 1 | Total Juegos: 16
-CALIENTE     | Promedio: 0.62 | S.B. Ganadas: 0 | Total Juegos: 16
-MIXTA        | Promedio: 0.53 | S.B. Ganadas: 0 | Total Juegos: 17
-BALANCEADA   | Promedio: 0.50 | S.B. Ganadas: 2 | Total Juegos: 16
+ALEATORIA    | Promedio: 2.00 | S.B. Ganadas: 0 | Total Juegos: 1
+CALIENTE     | Promedio: 0.83 | S.B. Ganadas: 3 | Total Juegos: 30
+REAL         | Promedio: 0.75 | S.B. Ganadas: 1 | Total Juegos: 20
+BALANCEADA   | Promedio: 0.57 | S.B. Ganadas: 4 | Total Juegos: 30
+FRIA         | Promedio: 0.57 | S.B. Ganadas: 3 | Total Juegos: 30
+MIXTA        | Promedio: 0.55 | S.B. Ganadas: 2 | Total Juegos: 31
+UNICA        | Promedio: 0.54 | S.B. Ganadas: 0 | Total Juegos: 13
+ELITE        | Promedio: 0.00 | S.B. Ganadas: 0 | Total Juegos: 1
 ==========================================================================================
-Reporte generado el: 2026-02-06 16:07:09
+Reporte generado el: 2026-03-11 15:24:06
 Nota: El reporte muestra cuales numeros especificos muerden la suerte.

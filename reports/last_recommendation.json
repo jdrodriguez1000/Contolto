@@ -1,60 +1,88 @@
 {
     "metadata": {
-        "fecha_generacion": "2026-02-06 16:00:21",
-        "fecha_sorteo_objetivo": "2026-02-07",
-        "mejor_estrategia_detectada": "real",
-        "reglas_temporales": "Mon-Wed-Sat, Cutoff 8:00 PM"
+        "fecha_generacion": "2026-03-11 15:24:11",
+        "fecha_sorteo_objetivo": "2026-03-11"
     },
     "juegos": [
         {
-            "fecha_sorteo": "2026-02-07",
+            "fecha_sorteo": "2026-03-11",
             "estrategia": "caliente",
-            "num1": 6,
-            "num2": 15,
-            "num3": 18,
-            "num4": 36,
-            "num5": 40,
-            "num6": 3
-        },
-        {
-            "fecha_sorteo": "2026-02-07",
-            "estrategia": "fria",
-            "num1": 10,
-            "num2": 12,
-            "num3": 15,
-            "num4": 34,
-            "num5": 43,
-            "num6": 3
-        },
-        {
-            "fecha_sorteo": "2026-02-07",
-            "estrategia": "mixta",
-            "num1": 10,
-            "num2": 17,
-            "num3": 32,
-            "num4": 33,
-            "num5": 39,
-            "num6": 3
-        },
-        {
-            "fecha_sorteo": "2026-02-07",
-            "estrategia": "balanceada",
             "num1": 9,
-            "num2": 13,
-            "num3": 25,
-            "num4": 31,
-            "num5": 43,
-            "num6": 3
+            "num2": 15,
+            "num3": 21,
+            "num4": 26,
+            "num5": 38,
+            "num6": 4
         },
         {
-            "fecha_sorteo": "2026-02-07",
+            "fecha_sorteo": "2026-03-11",
+            "estrategia": "fria",
+            "num1": 4,
+            "num2": 9,
+            "num3": 24,
+            "num4": 33,
+            "num5": 37,
+            "num6": 8
+        },
+        {
+            "fecha_sorteo": "2026-03-11",
+            "estrategia": "mixta",
+            "num1": 7,
+            "num2": 18,
+            "num3": 24,
+            "num4": 33,
+            "num5": 40,
+            "num6": 10
+        },
+        {
+            "fecha_sorteo": "2026-03-11",
+            "estrategia": "balanceada",
+            "num1": 3,
+            "num2": 15,
+            "num3": 24,
+            "num4": 36,
+            "num5": 43,
+            "num6": 13
+        },
+        {
+            "fecha_sorteo": "2026-03-11",
+            "estrategia": "elite",
+            "num1": 3,
+            "num2": 16,
+            "num3": 25,
+            "num4": 34,
+            "num5": 42,
+            "num6": 10
+        },
+        {
+            "fecha_sorteo": "2026-03-11",
             "estrategia": "real",
-            "num1": 6,
-            "num2": 19,
+            "num1": 9,
+            "num2": 14,
             "num3": 26,
-            "num4": 32,
-            "num5": 36,
-            "num6": 3
+            "num4": 35,
+            "num5": 42,
+            "num6": 10
+        },
+        {
+            "fecha_sorteo": "2026-03-11",
+            "estrategia": "unica",
+            "num1": 7,
+            "num2": 14,
+            "num3": 21,
+            "num4": 40,
+            "num5": 42,
+            "num6": 7
+        },
+        {
+            "fecha_sorteo": "2026-03-11",
+            "estrategia": "aleatoria",
+            "num1": 3,
+            "num2": 8,
+            "num3": 19,
+            "num4": 41,
+            "num5": 43,
+            "num6": 7
         }
     ]
 }

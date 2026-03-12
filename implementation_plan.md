@@ -22,6 +22,12 @@ Este documento detalla el progreso y los siguientes pasos para la migración y e
 - [ ] **3.1: Actualizador Automático**: Script que descargue los nuevos sorteos (miércoles y sábados) y los suba a Supabase.
 - [ ] **3.2: Generador de Dashboard**: Reporte de rendimiento visual (posiblemente en Flet o una vista de Supabase).
 
+## Fase 4: Filtros de Probabilidad Estadística (Próximamente 🚀)
+- [ ] **4.1: Filtro de Suma de Masas**: Restringir jugadas a sumas entre 90 y 130.
+- [ ] **4.2: Filtro de Paridad**: Asegurar balance 3:2 o 2:3 entre pares e impares.
+- [ ] **4.3: Filtro de Cuadrantes**: Garantizar presencia en los tres rangos (1-14, 15-28, 29-43).
+- [ ] **4.4: Refinamiento de Superballot**: Priorizar gaps históricos de 5 a 15 sorteos.
+
 ## Notas Técnicas
 - **Tecnologías**: Python 3.10+, Supabase (PostgreSQL), MCP-Server.
 - **Estrategia de Datos**: Se prioriza la lectura de la base de datos sobre archivos CSV locales para mantener una única fuente de verdad.

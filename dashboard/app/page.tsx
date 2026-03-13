@@ -311,82 +311,8 @@ export default function Home() {
         </article>
       </section>
 
-      {/* Main Content Areas */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-        <section className="card animate-in" style={{ animationDelay: '0.4s' }}>
-          <div className="card-title" style={{ color: 'white', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-             <History size={18} /> Ranking de Estrategias - All Time
-          </div>
-          <div className="table-responsive">
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border)', color: '#94a3b8', textAlign: 'left' }}>
-                  <th style={{ padding: '0.75rem' }}>Estrategia</th>
-                  <th style={{ padding: '0.75rem' }}>Promedio Aciertos</th>
-                  <th style={{ padding: '0.75rem' }}>S.B. Ganadas</th>
-                  <th style={{ padding: '0.75rem' }}>Total Juegos</th>
-                </tr>
-              </thead>
-              <tbody>
-                {strategyRanking.map((r, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <td style={{ padding: '0.75rem', textTransform: 'capitalize', fontWeight: 600 }}>{r.estrategia}</td>
-                    <td style={{ padding: '0.75rem' }}>
-                       <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{r.promedio}</span>
-                    </td>
-                    <td style={{ padding: '0.75rem' }}>
-                       <span style={{ color: r.sb > 0 ? '#fbbf24' : 'inherit' }}>{r.sb}</span>
-                    </td>
-                    <td style={{ padding: '0.75rem', opacity: 0.6 }}>{r.total}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="card animate-in" style={{ animationDelay: '0.5s' }}>
-          <div className="card-title" style={{ color: 'white', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Target size={18} /> Próximos Números Recomendados
-             </div>
-             <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>
-                OBJETIVO: {nextGames.length > 0 ? formatDate(nextGames[0].fecha_sorteo) : '---'}
-             </span>
-          </div>
-          <div className="table-responsive">
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border)', color: '#94a3b8', textAlign: 'left' }}>
-                  <th style={{ padding: '0.75rem' }}>Estrategia</th>
-                  <th style={{ padding: '0.75rem' }}>Jugada Recomendada</th>
-                </tr>
-              </thead>
-              <tbody>
-                {nextGames.map((g, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <td style={{ padding: '0.75rem', textTransform: 'capitalize', fontWeight: 600 }}>{g.estrategia}</td>
-                    <td style={{ padding: '0.75rem' }}>
-                       <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap' }}>
-                          {[g.num1, g.num2, g.num3, g.num4, g.num5].map((n, idx) => (
-                            <span key={idx} style={{ opacity: 0.9 }}>{n}{idx < 4 ? ',' : ''}</span>
-                          ))}
-                          <span style={{ color: '#fbbf24', fontWeight: 700 }}> + {g.num6}</span>
-                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p style={{ fontSize: '0.7rem', marginTop: '1rem', fontStyle: 'italic', opacity: 0.5 }}>
-            * Estos números representan la predicción optimizada para el siguiente sorteo.
-          </p>
-        </section>
-      </div>
-
       {/* Detailed Table Section (Reporte Detallado v2) */}
-      <section className="card animate-in" style={{ animationDelay: '0.6s' }}>
+      <section className="card animate-in" style={{ animationDelay: '0.4s', marginBottom: '1.5rem' }}>
           <div className="card-title" style={{ color: 'white', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Activity size={18} /> Reporte detallado de Rendimiento - Contolto V2
@@ -439,26 +365,12 @@ export default function Home() {
                            <div style={{ opacity: 0.7 }}>
                              [{winNums.join(', ')}] + {r.winner.num6}
                            </div>
-                        ) : 'No disponible'}
+                        ) : '--'}
                       </td>
                       <td style={{ padding: '1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <span style={{ 
-                            background: r.aciertos_principales >= 3 ? 'var(--primary)' : (r.aciertos_principales > 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.05)'),
-                            padding: '0.2rem 0.6rem',
-                            borderRadius: '10px',
-                            color: r.aciertos_principales >= 3 ? 'white' : 'inherit',
-                            fontWeight: 600
-                          }}>
-                            {r.aciertos_principales}
-                          </span>
-                          {r.acierto_superbalota && <span style={{ color: '#fbbf24', fontSize: '0.7rem', fontWeight: 700 }}>+SB</span>}
-                          {matches.length > 0 && (
-                            <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>
-                              ({matches.length} matches)
-                            </span>
-                          )}
-                        </div>
+                        <span className={`badge-tag ${r.aciertos_principales >= 3 ? 'badge-primary' : 'badge-neutral'}`}>
+                          {r.aciertos_principales} aciertos
+                        </span>
                       </td>
                     </tr>
                   );
@@ -467,6 +379,81 @@ export default function Home() {
             </table>
           </div>
       </section>
+
+      {/* Grid of Tables Sections */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+        <section className="card animate-in" style={{ animationDelay: '0.5s' }}>
+          <div className="card-title" style={{ color: 'white', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+             <History size={18} /> Ranking de Estrategias - All Time
+          </div>
+          <div className="table-responsive">
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)', color: '#94a3b8', textAlign: 'left' }}>
+                  <th style={{ padding: '0.75rem' }}>Estrategia</th>
+                  <th style={{ padding: '0.75rem' }}>Promedio Aciertos</th>
+                  <th style={{ padding: '0.75rem' }}>S.B. Ganadas</th>
+                  <th style={{ padding: '0.75rem' }}>Total Juegos</th>
+                </tr>
+              </thead>
+              <tbody>
+                {strategyRanking.map((r, i) => (
+                  <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <td style={{ padding: '0.75rem', textTransform: 'capitalize', fontWeight: 600 }}>{r.estrategia}</td>
+                    <td style={{ padding: '0.75rem' }}>
+                       <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{r.promedio}</span>
+                    </td>
+                    <td style={{ padding: '0.75rem' }}>
+                       <span style={{ color: r.sb > 0 ? '#fbbf24' : 'inherit' }}>{r.sb}</span>
+                    </td>
+                    <td style={{ padding: '0.75rem', opacity: 0.6 }}>{r.total}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="card animate-in" style={{ animationDelay: '0.6s' }}>
+          <div className="card-title" style={{ color: 'white', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Target size={18} /> Próximos Números Recomendados
+             </div>
+             <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>
+                OBJETIVO: {nextGames.length > 0 ? formatDate(nextGames[0].fecha_sorteo) : '---'}
+             </span>
+          </div>
+          <div className="table-responsive">
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)', color: '#94a3b8', textAlign: 'left' }}>
+                  <th style={{ padding: '0.75rem' }}>Estrategia</th>
+                  <th style={{ padding: '0.75rem' }}>Jugada Recomendada</th>
+                </tr>
+              </thead>
+              <tbody>
+                {nextGames.map((g, i) => (
+                  <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <td style={{ padding: '0.75rem', textTransform: 'capitalize', fontWeight: 600 }}>{g.estrategia}</td>
+                    <td style={{ padding: '0.75rem' }}>
+                       <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap' }}>
+                          {[g.num1, g.num2, g.num3, g.num4, g.num5].map((n, idx) => (
+                            <span key={idx} style={{ opacity: 0.9 }}>{n}{idx < 4 ? ',' : ''}</span>
+                          ))}
+                          <span style={{ color: '#fbbf24', fontWeight: 700 }}> + {g.num6}</span>
+                       </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p style={{ fontSize: '0.7rem', marginTop: '1rem', fontStyle: 'italic', opacity: 0.5 }}>
+            * Estos números representan la predicción optimizada para el siguiente sorteo.
+          </p>
+        </section>
+      </div>
+
 
     </main>
   );

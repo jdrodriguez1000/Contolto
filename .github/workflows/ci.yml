@@ -1,0 +1,43 @@
+name: Verificación y CI (Integración Continua)
+
+on:
+  push:
+    branches-ignore:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    name: Validar Código y Calidad
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar Dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8  # Para revisión de estilo y errores básicos
+
+      - name: Revisión de Sintaxis (Flake8)
+        run: |
+          # Solo errores críticos por ahora
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Prueba de Carga de Módulos
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          # Intentamos correr el main pero en modo seco si fuera posible, 
+          # o al menos verificar que todo lo de core_v2 se puede importar.
+          python -c "import main; from core_v2 import db_provider, game_generator; print('✅ Todos los módulos se cargan correctamente')"

@@ -1,0 +1,130 @@
+:root {
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+  --primary: #10b981; /* Emerald */
+  --primary-foreground: #ffffff;
+  --secondary: #334155;
+  --accent: #fbbf24; /* Amber */
+  --border: #334155;
+  --radius: 0.75rem;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary);
+}
+
+.card-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.number-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--secondary);
+  color: white;
+  font-weight: 700;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.number-badge.hot {
+  border-color: var(--primary);
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--primary);
+}
+
+.number-badge.cold {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.superball {
+  background: var(--accent) !important;
+  color: #1e293b !important;
+}
+
+.badge-tag {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-green { background: rgba(16, 185, 129, 0.1); color: var(--primary); }
+.badge-blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}

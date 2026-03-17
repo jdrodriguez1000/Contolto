@@ -41,8 +41,8 @@ body {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
@@ -80,14 +80,16 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 1.65rem;
+  height: 1.65rem;
+  min-width: 1.65rem;
+  min-height: 1.65rem;
   border-radius: 50%;
   background: var(--secondary);
   color: white;
   font-weight: 700;
-  margin-right: 0.5rem;
-  margin-bottom: 0.5rem;
+  font-size: 0.72rem;
+  flex-shrink: 0;
   border: 2px solid transparent;
   transition: all 0.2s;
 }

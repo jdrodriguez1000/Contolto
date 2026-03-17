@@ -48,8 +48,20 @@ export default function Home() {
   const [strategyRanking, setStrategyRanking] = useState<any[]>([]);
   const [detailedRecent, setDetailedRecent] = useState<RendimientoDetallado[]>([]);
   const [nextGames, setNextGames] = useState<any[]>([]);
+  const [balotoJackpot, setBalotoJackpot] = useState<string>('...');
 
   useEffect(() => {
+    async function fetchJackpot() {
+       try {
+          const res = await fetch('/api/baloto');
+          const data = await res.json();
+          if (data.jackpot) setBalotoJackpot(data.jackpot);
+       } catch (err) {
+          console.error("Error fetching jackpot:", err);
+       }
+    }
+    fetchJackpot();
+
     async function fetchData() {
       setLoading(true);
       try {
@@ -218,6 +230,14 @@ export default function Home() {
     });
   };
 
+  const formatDateShort = (dateStr: string) => {
+    const d = new Date(dateStr + 'T00:00:00Z');
+    const dd = String(d.getUTCDate()).padStart(2, '0');
+    const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const yy = String(d.getUTCFullYear()).slice(-2);
+    return `${dd}-${mm}-${yy}`;
+  };
+
   const getMatchedNumbers = (play: number[], winner: number[]) => {
     return play.filter(n => winner.includes(n));
   };
@@ -249,7 +269,7 @@ export default function Home() {
           <div className="card-title">
             <Target size={16} /> ESTRATEGIA REAL JUGADA
           </div>
-          <div style={{ display: 'flex', marginTop: '0.5rem', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', marginTop: '0.5rem', gap: '0.3rem', flexWrap: 'nowrap', alignItems: 'center' }}>
             {realStrategyEntry ? (
               <>
                 {[1, 2, 3, 4, 5].map(i => {
@@ -266,16 +286,14 @@ export default function Home() {
               </>
             ) : <span style={{opacity: 0.5}}>Buscando...</span>}
           </div>
-          <div style={{ fontSize: '0.75rem', marginTop: '0.5rem', opacity: 0.7 }}>
-            Números generados por el modelo IA Core v2.
-          </div>
+          {/* Message removed */}
         </article>
 
         <article className="card animate-in" style={{ animationDelay: '0.2s', borderTop: '4px solid #f59e0b' }}>
           <div className="card-title">
-            <Activity size={16} /> ÚLTIMO SORTEO ({lastSorteo ? formatDate(lastSorteo.fecha) : '...'})
+            <Activity size={16} /> ÚLTIMO SORTEO ({lastSorteo ? formatDateShort(lastSorteo.fecha) : '...'})
           </div>
-          <div style={{ display: 'flex', marginTop: '0.5rem', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', marginTop: '0.5rem', gap: '0.3rem', flexWrap: 'nowrap', alignItems: 'center' }}>
             {lastSorteo ? (
               <>
                 {[1, 2, 3, 4, 5].map(i => (
@@ -305,8 +323,15 @@ export default function Home() {
               </>
             ) : '--'}
           </div>
-          <div style={{ fontSize: '0.75rem', marginTop: '0.5rem', opacity: 0.7 }}>
-            Consolidado de impacto en el último juego.
+          {/* Message removed */}
+        </article>
+
+        <article className="card animate-in" style={{ animationDelay: '0.4s', borderTop: '4px solid #fbbf24' }}>
+          <div className="card-title">
+            <Trophy size={16} /> ACUMULADO BALOTO
+          </div>
+          <div className="card-value" style={{ color: '#fbbf24' }}>
+            {balotoJackpot}
           </div>
         </article>
       </section>

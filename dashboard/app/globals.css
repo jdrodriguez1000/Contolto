@@ -27,6 +27,14 @@ body {
 
 .header {
   margin-bottom: 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.header > div:first-child {
+  flex: 1;
   text-align: center;
 }
 
@@ -129,4 +137,9 @@ body {
 
 .animate-in {
   animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

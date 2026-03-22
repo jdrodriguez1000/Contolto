@@ -2,16 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { 
-  TrendingUp, 
-  ArrowUpRight, 
-  Settings, 
-  Calendar, 
-  Trophy, 
+import {
+  TrendingUp,
+  ArrowUpRight,
+  Settings,
+  Calendar,
+  Trophy,
   Activity,
   History,
   Target,
-  Sparkles
+  Sparkles,
+  RotateCw
 } from 'lucide-react';
 
 interface Sorteo {
@@ -45,6 +46,7 @@ export default function Home() {
   const [bestStrategy, setBestStrategy] = useState<string>('Calculando...');
   const [realStrategyEntry, setRealStrategyEntry] = useState<RendimientoDetallado | null>(null);
   const [loading, setLoading] = useState(true);
+  const [regenerating, setRegenerating] = useState(false);
   const [strategyRanking, setStrategyRanking] = useState<any[]>([]);
   const [detailedRecent, setDetailedRecent] = useState<RendimientoDetallado[]>([]);
   const [nextGames, setNextGames] = useState<any[]>([]);
@@ -242,6 +244,33 @@ export default function Home() {
     return play.filter(n => winner.includes(n));
   };
 
+  const handleRegenerate = async () => {
+    if (regenerating) return;
+
+    setRegenerating(true);
+    try {
+      const res = await fetch('/api/regenerate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        // Recargar datos después de regenerar
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        window.location.reload();
+      } else {
+        alert(`Error: ${data.message}`);
+        setRegenerating(false);
+      }
+    } catch (err) {
+      console.error('Error regenerando:', err);
+      alert('Error al regenerar los números');
+      setRegenerating(false);
+    }
+  };
+
   if (loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0f172a', color: 'white' }}>
        <div style={{ textAlign: 'center' }}>
@@ -254,13 +283,41 @@ export default function Home() {
   return (
     <main className="dashboard-container">
       <header className="header animate-in">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
-           <Sparkles style={{ color: '#fbbf24' }} size={32} />
-           <h1>CONTOLTO v2 Professional</h1>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
+             <Sparkles style={{ color: '#fbbf24' }} size={32} />
+             <h1>Contolto Profesional</h1>
+          </div>
         </div>
-        <p style={{ color: '#94a3b8', fontSize: '1.1rem', fontWeight: 300 }}>
-           Estrategias de IA & Análisis de Rendimiento Predictivo
-        </p>
+        <button
+          onClick={handleRegenerate}
+          disabled={regenerating}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.75rem 1.5rem',
+            background: regenerating ? '#475569' : '#10b981',
+            color: 'white',
+            border: 'none',
+            borderRadius: '0.5rem',
+            cursor: regenerating ? 'not-allowed' : 'pointer',
+            fontSize: '1rem',
+            fontWeight: 600,
+            transition: 'all 0.3s ease',
+            opacity: regenerating ? 0.7 : 1,
+            whiteSpace: 'nowrap',
+            flexShrink: 0
+          }}
+        >
+          <RotateCw
+            size={20}
+            style={{
+              animation: regenerating ? 'spin 1s linear infinite' : 'none'
+            }}
+          />
+          {regenerating ? 'Regenerando...' : 'Volver a jugar'}
+        </button>
       </header>
 
       {/* KPI Cards */}
@@ -336,148 +393,94 @@ export default function Home() {
         </article>
       </section>
 
-      {/* Detailed Table Section (Reporte Detallado v2) */}
+      {/* Unified Detailed Report Table */}
       <section className="card animate-in" style={{ animationDelay: '0.4s', marginBottom: '1.5rem' }}>
-          <div className="card-title" style={{ color: 'white', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Activity size={18} /> Reporte detallado de Rendimiento - Contolto V2
-             </div>
-             <span style={{ fontSize: '0.8rem', opacity: 0.6, background: 'rgba(255,255,255,0.1)', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
-                ÚLTIMO JUEGO INTEGRADO: {detailedRecent.length > 0 ? formatDate(detailedRecent[0].juegos.fecha_sorteo) : '---'}
-             </span>
-          </div>
-          <div className="table-responsive">
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border)', color: '#94a3b8', textAlign: 'left' }}>
-                  <th style={{ padding: '1rem' }}>Estrategia</th>
-                  <th style={{ padding: '1rem' }}>S.B.</th>
-                  <th style={{ padding: '1rem' }}>Jugada (IA)</th>
-                  <th style={{ padding: '1rem' }}>Ganadora (Historial)</th>
-                  <th style={{ padding: '1rem' }}>Aciertos</th>
-                </tr>
-              </thead>
-              <tbody>
-                {detailedRecent.map((r, i) => {
-                  const playNums = r.juegos ? [r.juegos.num1, r.juegos.num2, r.juegos.num3, r.juegos.num4, r.juegos.num5] : [];
-                  const winNums = r.winner ? [r.winner.num1, r.winner.num2, r.winner.num3, r.winner.num4, r.winner.num5] : [];
-                  const matches = getMatchedNumbers(playNums, winNums);
-                  
-                  return (
-                    <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', verticalAlign: 'middle' }}>
-                      <td style={{ padding: '1rem', textTransform: 'capitalize', fontWeight: 600 }}>{r.juegos.estrategia}</td>
-                      <td style={{ padding: '1rem' }}>
-                         {r.acierto_superbalota ? <span className="badge-tag badge-green">OK</span> : <span style={{opacity: 0.3}}>NO</span>}
-                      </td>
-                      <td style={{ padding: '1rem' }}>
-                        <div style={{ display: 'flex', gap: '4px' }}>
-                          {playNums.map((n, idx) => (
-                             <span key={idx} style={{ 
-                               color: matches.includes(n) ? '#10b981' : 'inherit', 
-                               fontWeight: matches.includes(n) ? 700 : 400,
-                               background: matches.includes(n) ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
-                               padding: '0 4px',
-                               borderRadius: '2px'
-                             }}>
-                               {n}{idx < 4 ? ',' : ''}
-                             </span>
-                          ))}
-                          <span style={{ color: '#fbbf24', fontWeight: 600 }}> + {r.juegos.num6}</span>
-                        </div>
-                      </td>
-                      <td style={{ padding: '1rem' }}>
-                        {r.winner ? (
-                           <div style={{ opacity: 0.7 }}>
-                             [{winNums.join(', ')}] + {r.winner.num6}
-                           </div>
-                        ) : '--'}
-                      </td>
-                      <td style={{ padding: '1rem' }}>
-                        <span className={`badge-tag ${r.aciertos_principales >= 3 ? 'badge-primary' : 'badge-neutral'}`}>
-                          {r.aciertos_principales} aciertos
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+        <div className="card-title" style={{ color: 'white', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Activity size={18} /> Reporte Completo de Rendimiento
+           </div>
+           <span style={{ fontSize: '0.7rem', opacity: 0.6, background: 'rgba(255,255,255,0.1)', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+              {detailedRecent.length > 0 ? formatDate(detailedRecent[0].juegos.fecha_sorteo) : '---'}
+           </span>
+        </div>
+        <div className="table-responsive">
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border)', color: '#94a3b8', textAlign: 'left' }}>
+                <th style={{ padding: '0.75rem' }}>Estrategia</th>
+                <th style={{ padding: '0.75rem' }}>S.B. Últ.</th>
+                <th style={{ padding: '0.75rem' }}>Jugada (IA)</th>
+                <th style={{ padding: '0.75rem' }}>Aciertos</th>
+                <th style={{ padding: '0.75rem', borderLeft: '2px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.02)' }}>Prom. All Time</th>
+                <th style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.02)' }}>S.B. All Time</th>
+                <th style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.02)' }}>Total Juegos</th>
+                <th style={{ padding: '0.75rem', borderLeft: '2px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.03)' }}>Próxima Jugada</th>
+              </tr>
+            </thead>
+            <tbody>
+              {detailedRecent.sort((a, b) => a.juegos.estrategia.localeCompare(b.juegos.estrategia)).map((r, i) => {
+                const playNums = r.juegos ? [r.juegos.num1, r.juegos.num2, r.juegos.num3, r.juegos.num4, r.juegos.num5] : [];
+                const winNums = r.winner ? [r.winner.num1, r.winner.num2, r.winner.num3, r.winner.num4, r.winner.num5] : [];
+                const matches = getMatchedNumbers(playNums, winNums);
+                const rankData = strategyRanking.find(rk => rk.estrategia.toLowerCase() === r.juegos.estrategia.toLowerCase());
+
+                return (
+                  <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', verticalAlign: 'middle' }}>
+                    <td style={{ padding: '0.75rem', textTransform: 'capitalize', fontWeight: 600 }}>{r.juegos.estrategia}</td>
+                    <td style={{ padding: '0.75rem' }}>
+                       {r.acierto_superbalota ? <span className="badge-tag badge-green">✓</span> : <span style={{opacity: 0.3}}>—</span>}
+                    </td>
+                    <td style={{ padding: '0.75rem' }}>
+                      <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap', fontSize: '0.75rem' }}>
+                        {playNums.map((n, idx) => (
+                           <span key={idx} style={{
+                             color: matches.includes(n) ? '#10b981' : 'inherit',
+                             fontWeight: matches.includes(n) ? 700 : 400,
+                             background: matches.includes(n) ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+                             padding: '0 2px',
+                             borderRadius: '2px'
+                           }}>
+                             {n}
+                           </span>
+                        ))}
+                        <span style={{ color: '#fbbf24', fontWeight: 600 }}>+{r.juegos.num6}</span>
+                      </div>
+                    </td>
+                    <td style={{ padding: '0.75rem' }}>
+                      <span className={`badge-tag ${r.aciertos_principales >= 3 ? 'badge-primary' : 'badge-neutral'}`} style={{ fontSize: '0.7rem' }}>
+                        {r.aciertos_principales}
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.75rem', borderLeft: '2px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.02)' }}>
+                      <span style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '0.75rem' }}>{rankData?.promedio || '—'}</span>
+                    </td>
+                    <td style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.02)' }}>
+                      <span style={{ color: rankData && rankData.sb > 0 ? '#fbbf24' : 'inherit', fontSize: '0.75rem' }}>{rankData?.sb || '—'}</span>
+                    </td>
+                    <td style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.02)', opacity: 0.7, fontSize: '0.75rem' }}>
+                      {rankData?.total || '—'}
+                    </td>
+                    <td style={{ padding: '0.75rem', borderLeft: '2px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.03)' }}>
+                      {(() => {
+                        const gameData = nextGames.find(g => g.estrategia.toLowerCase() === r.juegos.estrategia.toLowerCase());
+                        return gameData ? (
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', fontSize: '0.75rem' }}>
+                            {[gameData.num1, gameData.num2, gameData.num3, gameData.num4, gameData.num5].map((n, idx) => (
+                              <span key={idx} style={{ opacity: 0.9 }}>{n}</span>
+                            ))}
+                            <span style={{ color: '#fbbf24', fontWeight: 700 }}>+{gameData.num6}</span>
+                          </div>
+                        ) : <span style={{ opacity: 0.3 }}>—</span>;
+                      })()}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </section>
 
-      {/* Grid of Tables Sections */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-        <section className="card animate-in" style={{ animationDelay: '0.5s' }}>
-          <div className="card-title" style={{ color: 'white', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-             <History size={18} /> Ranking de Estrategias - All Time
-          </div>
-          <div className="table-responsive">
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border)', color: '#94a3b8', textAlign: 'left' }}>
-                  <th style={{ padding: '0.75rem' }}>Estrategia</th>
-                  <th style={{ padding: '0.75rem' }}>Promedio Aciertos</th>
-                  <th style={{ padding: '0.75rem' }}>S.B. Ganadas</th>
-                  <th style={{ padding: '0.75rem' }}>Total Juegos</th>
-                </tr>
-              </thead>
-              <tbody>
-                {strategyRanking.map((r, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <td style={{ padding: '0.75rem', textTransform: 'capitalize', fontWeight: 600 }}>{r.estrategia}</td>
-                    <td style={{ padding: '0.75rem' }}>
-                       <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{r.promedio}</span>
-                    </td>
-                    <td style={{ padding: '0.75rem' }}>
-                       <span style={{ color: r.sb > 0 ? '#fbbf24' : 'inherit' }}>{r.sb}</span>
-                    </td>
-                    <td style={{ padding: '0.75rem', opacity: 0.6 }}>{r.total}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="card animate-in" style={{ animationDelay: '0.6s' }}>
-          <div className="card-title" style={{ color: 'white', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Target size={18} /> Próximos Números Recomendados
-             </div>
-             <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>
-                OBJETIVO: {nextGames.length > 0 ? formatDate(nextGames[0].fecha_sorteo) : '---'}
-             </span>
-          </div>
-          <div className="table-responsive">
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border)', color: '#94a3b8', textAlign: 'left' }}>
-                  <th style={{ padding: '0.75rem' }}>Estrategia</th>
-                  <th style={{ padding: '0.75rem' }}>Jugada Recomendada</th>
-                </tr>
-              </thead>
-              <tbody>
-                {nextGames.map((g, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <td style={{ padding: '0.75rem', textTransform: 'capitalize', fontWeight: 600 }}>{g.estrategia}</td>
-                    <td style={{ padding: '0.75rem' }}>
-                       <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap' }}>
-                          {[g.num1, g.num2, g.num3, g.num4, g.num5].map((n, idx) => (
-                            <span key={idx} style={{ opacity: 0.9 }}>{n}{idx < 4 ? ',' : ''}</span>
-                          ))}
-                          <span style={{ color: '#fbbf24', fontWeight: 700 }}> + {g.num6}</span>
-                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p style={{ fontSize: '0.7rem', marginTop: '1rem', fontStyle: 'italic', opacity: 0.5 }}>
-            * Estos números representan la predicción optimizada para el siguiente sorteo.
-          </p>
-        </section>
-      </div>
 
 
     </main>

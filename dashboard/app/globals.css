@@ -237,7 +237,7 @@ thead {
 }
 
 th {
-  padding: 1.25rem 1rem;
+  padding: 0.75rem 1rem;
   text-align: left;
   color: var(--foreground-muted);
   font-weight: 600;
@@ -288,7 +288,7 @@ tbody tr.aciertos-5:hover {
 }
 
 td {
-  padding: 1rem;
+  padding: 0.65rem 1rem;
   color: var(--foreground);
 }
 

@@ -364,8 +364,15 @@ export default function Home() {
                 const matches = getMatchedNumbers(playNums, winNums);
                 const rankData = strategyRanking.find(rk => rk.estrategia.toLowerCase() === r.juegos.estrategia.toLowerCase());
 
+                const getAciertosClass = (aciertos: number) => {
+                  if (aciertos === 5) return 'aciertos-5';
+                  if (aciertos === 3 || aciertos === 4) return 'aciertos-3';
+                  if (aciertos === 2) return 'aciertos-2';
+                  return 'aciertos-0';
+                };
+
                 return (
-                  <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', verticalAlign: 'middle' }}>
+                  <tr key={i} className={getAciertosClass(r.aciertos_principales)} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', verticalAlign: 'middle' }}>
                     <td style={{ padding: '0.75rem', textTransform: 'capitalize', fontWeight: 600 }}>{r.juegos.estrategia}</td>
                     <td style={{ padding: '0.75rem' }}>
                        {r.acierto_superbalota ? <span className="badge-tag badge-green">✓</span> : <span style={{opacity: 0.3}}>—</span>}

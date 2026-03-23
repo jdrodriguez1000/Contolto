@@ -96,7 +96,7 @@ body::before {
   backdrop-filter: blur(10px);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-lg);
-  padding: 2rem;
+  padding: 1.25rem 1.5rem;
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.3),
     inset 0 1px 1px rgba(255, 255, 255, 0.1);
@@ -131,7 +131,7 @@ body::before {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--foreground-muted);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;

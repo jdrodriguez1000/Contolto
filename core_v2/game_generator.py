@@ -10,23 +10,16 @@ class GameGenerator:
         self.db = DBProvider()
         self.hot_pool = self.db.get_hot_numbers()
         self.cold_pool = self.db.get_cold_numbers()
-
-        # Fallback si los pools son muy pequeños
-        if len(self.hot_pool) < 10:
-            self.hot_pool = list(range(1, 44))
-        if len(self.cold_pool) < 10:
-            self.cold_pool = list(range(1, 44))
-
         self.best_strat = self.db.get_best_strategy()
-
+        
         # Nuevos pools analíticos para ELITE
         self.cycles = self.db.get_number_cycles()
         self.momentum_pool = self.db.get_momentum_numbers()
         self.recent_winners = self.db.get_recent_full_historial(limit=150)
-
+        
         # Cargar parejas frecuentes (Afinidad)
         self.affine_pairs = self.db.get_top_pairs(limit=60)
-
+        
         # Cargar últimos números ganadores para la regla de exclusión
         last_res = self.db.get_last_winning_result()
         if last_res:
@@ -40,7 +33,7 @@ class GameGenerator:
         now = datetime.now()
         current_weekday = now.weekday()
         current_hour = now.hour
-        draw_days = [0, 2, 4]  # Lunes, Miércoles, Viernes 
+        draw_days = [0, 2, 5] 
         if current_weekday in draw_days and current_hour < 20:
             return now.strftime("%Y-%m-%d")
         for i in range(1, 8):
@@ -133,12 +126,9 @@ class GameGenerator:
 
     def generate_fria(self):
         for _ in range(200):
-            available_cold = min(4, len(self.cold_pool))
-            nums = random.sample(self.cold_pool, available_cold)
+            nums = random.sample(self.cold_pool, 4)
             remaining = list(set(range(1, 44)) - set(nums))
-            while len(nums) < 5 and remaining:
-                nums.append(random.choice(remaining))
-                remaining.remove(nums[-1])
+            nums.append(random.choice(remaining))
             if self._is_valid_play(nums): return sorted(nums)
         return sorted(random.sample(range(1, 44), 5))
 
@@ -158,13 +148,9 @@ class GameGenerator:
 
     def generate_mixta(self):
         for _ in range(200):
-            hot_count = min(2, len(self.hot_pool))
-            cold_count = min(2, len(self.cold_pool))
-            nums = random.sample(self.hot_pool, hot_count) + random.sample(self.cold_pool, cold_count)
+            nums = random.sample(self.hot_pool, 2) + random.sample(self.cold_pool, 2)
             remaining = list(set(range(1, 44)) - set(nums))
-            while len(nums) < 5 and remaining:
-                nums.append(random.choice(remaining))
-                remaining.remove(nums[-1])
+            nums.append(random.choice(remaining))
             if self._is_valid_play(nums): return sorted(nums)
         return sorted(random.sample(range(1, 44), 5))
 

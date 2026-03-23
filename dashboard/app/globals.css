@@ -60,7 +60,7 @@ body::before {
 }
 
 .header {
-  margin-bottom: 4rem;
+  margin-bottom: 2rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -73,9 +73,9 @@ body::before {
 }
 
 .header h1 {
-  font-size: 3.5rem;
+  font-size: 2.5rem;
   font-weight: 800;
-  letter-spacing: -1px;
+  letter-spacing: -0.5px;
   margin: 0;
   background: linear-gradient(135deg, var(--primary-light) 0%, var(--accent-light) 100%);
   -webkit-background-clip: text;
@@ -253,6 +253,38 @@ tbody tr {
 
 tbody tr:hover {
   background: rgba(16, 185, 129, 0.05);
+}
+
+/* Colores condicionales por aciertos */
+tbody tr.aciertos-0,
+tbody tr.aciertos-1 {
+  background: transparent;
+}
+
+tbody tr.aciertos-2 {
+  background: rgba(251, 191, 36, 0.12);
+}
+
+tbody tr.aciertos-2:hover {
+  background: rgba(251, 191, 36, 0.18);
+}
+
+tbody tr.aciertos-3,
+tbody tr.aciertos-4 {
+  background: rgba(249, 115, 22, 0.15);
+}
+
+tbody tr.aciertos-3:hover,
+tbody tr.aciertos-4:hover {
+  background: rgba(249, 115, 22, 0.22);
+}
+
+tbody tr.aciertos-5 {
+  background: rgba(16, 185, 129, 0.15);
+}
+
+tbody tr.aciertos-5:hover {
+  background: rgba(16, 185, 129, 0.22);
 }
 
 td {

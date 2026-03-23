@@ -11,8 +11,7 @@ import {
   Activity,
   History,
   Target,
-  Sparkles,
-  RotateCw
+  Sparkles
 } from 'lucide-react';
 
 interface Sorteo {
@@ -46,7 +45,6 @@ export default function Home() {
   const [bestStrategy, setBestStrategy] = useState<string>('Calculando...');
   const [realStrategyEntry, setRealStrategyEntry] = useState<RendimientoDetallado | null>(null);
   const [loading, setLoading] = useState(true);
-  const [regenerating, setRegenerating] = useState(false);
   const [strategyRanking, setStrategyRanking] = useState<any[]>([]);
   const [detailedRecent, setDetailedRecent] = useState<RendimientoDetallado[]>([]);
   const [nextGames, setNextGames] = useState<any[]>([]);
@@ -244,33 +242,6 @@ export default function Home() {
     return play.filter(n => winner.includes(n));
   };
 
-  const handleRegenerate = async () => {
-    if (regenerating) return;
-
-    setRegenerating(true);
-    try {
-      const res = await fetch('/api/regenerate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        // Recargar datos después de regenerar
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        window.location.reload();
-      } else {
-        alert(`Error: ${data.message}`);
-        setRegenerating(false);
-      }
-    } catch (err) {
-      console.error('Error regenerando:', err);
-      alert('Error al regenerar los números');
-      setRegenerating(false);
-    }
-  };
-
   if (loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0f172a', color: 'white' }}>
        <div style={{ textAlign: 'center' }}>
@@ -283,41 +254,10 @@ export default function Home() {
   return (
     <main className="dashboard-container">
       <header className="header animate-in">
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
-             <Sparkles style={{ color: '#fbbf24' }} size={32} />
-             <h1>Contolto Profesional</h1>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
+           <Sparkles style={{ color: '#fbbf24' }} size={32} />
+           <h1>Contolto Profesional</h1>
         </div>
-        <button
-          onClick={handleRegenerate}
-          disabled={regenerating}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem 1.5rem',
-            background: regenerating ? '#475569' : '#10b981',
-            color: 'white',
-            border: 'none',
-            borderRadius: '0.5rem',
-            cursor: regenerating ? 'not-allowed' : 'pointer',
-            fontSize: '1rem',
-            fontWeight: 600,
-            transition: 'all 0.3s ease',
-            opacity: regenerating ? 0.7 : 1,
-            whiteSpace: 'nowrap',
-            flexShrink: 0
-          }}
-        >
-          <RotateCw
-            size={20}
-            style={{
-              animation: regenerating ? 'spin 1s linear infinite' : 'none'
-            }}
-          />
-          {regenerating ? 'Regenerando...' : 'Volver a jugar'}
-        </button>
       </header>
 
       {/* KPI Cards */}

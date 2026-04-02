@@ -26,60 +26,46 @@ class PerformanceReporter:
         smart_print("\n[ REPORTE DETALLADO DE RENDIMIENTO - CONTOLTO v2 ]")
         smart_print("=" * 90)
 
-        # 1. Obtener los últimos 15 registros de rendimiento calificados
+        # 1. Obtener los últimos registros de rendimiento 
+        # (Mostramos un resumen por estrategia del último sorteo)
         rendimiento_data = self.db.supabase.table("rendimiento")\
             .select("*, juegos(*)")\
             .order("created_at", desc=True)\
-            .limit(15)\
+            .limit(2000)\
             .execute().data
 
         if not rendimiento_data:
             smart_print("(!) No hay datos de rendimiento calificados aun.")
             return
 
-        # Obtener todas las fechas únicas para traer el historial de una sola vez
-        fechas = list(set([r['juegos']['fecha_sorteo'] for r in rendimiento_data if r.get('juegos')]))
-        historial_raw = self.db.supabase.table("historial")\
-            .select("*")\
-            .in_("fecha", fechas)\
-            .execute().data
-        
-        # Mapear historial por fecha para acceso rápido
-        historial_map = {h['fecha']: h for h in historial_raw}
-
-        header = f"{'FECHA':<12} | {'ESTRATEGIA':<12} | {'S.B':<3} | {'JUGADA (N1-N5 + SB)':<22} | {'GANADORA (N1-N5 + SB)':<22} | {'ACIERTOS'}"
-        smart_print(header)
-        smart_print("-" * 110)
-
+        # Agrupar por fecha y estrategia para el resumen
+        resumen_sorteo = {}
         for ref in rendimiento_data:
-            juego = ref.get('juegos', {})
+            juego = ref.get('juegos')
             if not juego: continue
+            fecha = juego['fecha_sorteo']
+            est = juego['estrategia']
             
-            fecha = juego.get('fecha_sorteo', 'N/A')
-            estrategia = juego.get('estrategia', 'N/A').upper()
-            num_jugados = [juego[f'num{i}'] for i in range(1, 6)]
-            sb_jugada = juego['num6']
+            key = (fecha, est)
+            if key not in resumen_sorteo:
+                resumen_sorteo[key] = {"total": 0, "hits": 0, "sb": 0}
             
-            ganador = historial_map.get(fecha)
-            if not ganador:
-                continue
+            resumen_sorteo[key]["total"] += 1
+            resumen_sorteo[key]["hits"] += ref['aciertos_principales']
+            if ref['acierto_superbalota']:
+                resumen_sorteo[key]["sb"] += 1
 
-            num_ganadores = [ganador[f'num{i}'] for i in range(1, 6)]
-            sb_ganadora = ganador['num6']
-            
-            # Identificar coincidencias
-            coincidencias = set(num_jugados).intersection(set(num_ganadores))
-            matches_str = ",".join(map(str, sorted(list(coincidencias)))) if coincidencias else "Ninguno"
-            acierto_sb = "OK" if sb_jugada == sb_ganadora else "NO"
-            
-            # Formateo de jugada y ganadora
-            jugada_str = f"{num_jugados} + {sb_jugada}"
-            ganadora_str = f"{num_ganadores} + {sb_ganadora}"
-            
-            aciertos_count = ref.get('aciertos_principales', 0)
-            resumen_aciertos = f"{aciertos_count} (+SB)" if acierto_sb == "OK" else f"{aciertos_count}"
-            
-            linea = f"{fecha:<12} | {estrategia:<12} | {acierto_sb:<3} | {jugada_str:<22} | {ganadora_str:<22} | {resumen_aciertos:<8} (Coinciden: {matches_str})"
+        header = f"{'FECHA':<12} | {'ESTRATEGIA':<12} | {'TOTAL JUEGOS':<14} | {'PROM. ACIERTOS':<15} | {'SB GANADAS'}"
+        smart_print(header)
+        smart_print("-" * 80)
+
+        # Mostrar solo los sorteos más recientes (agrupados)
+        sorted_keys = sorted(resumen_sorteo.keys(), reverse=True)[:15]
+        for key in sorted_keys:
+            fecha, est = key
+            data = resumen_sorteo[key]
+            avg = data["hits"] / data["total"]
+            linea = f"{fecha:<12} | {est.upper():<12} | {data['total']:<14} | {avg:<15.2f} | {data['sb']}"
             smart_print(linea)
 
         # 2. Ranking de Estrategias

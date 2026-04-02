@@ -108,8 +108,10 @@ class ResultsUpdater:
         """Calcula el rendimiento de juegos que no tienen registro en la tabla rendimiento"""
         print("\n[INFO] Calculando rendimiento de juegos pendientes...")
         
+        # 1. Obtener juegos y IDs ya calificados
         juegos = self.db.supabase.table("juegos").select("*").execute().data
-        rendimiento_ids = [r['juego_id'] for r in self.db.supabase.table("rendimiento").select("juego_id").execute().data]
+        rendimiento_ids_res = self.db.supabase.table("rendimiento").select("juego_id").execute()
+        rendimiento_ids = {r['juego_id'] for r in rendimiento_ids_res.data}
         
         juegos_pendientes = [j for j in juegos if j['id'] not in rendimiento_ids]
         
@@ -117,19 +119,30 @@ class ResultsUpdater:
             print("[INFO] No hay juegos pendientes de calificación.")
             return
 
-        print(f"[INFO] Calificando {len(juegos_pendientes)} juegos...")
+        print(f"[INFO] Analizando {len(juegos_pendientes)} juegos...")
+        
+        # 2. Obtener fechas únicas de sorteo para los juegos pendientes
+        fechas_pendientes = list({j['fecha_sorteo'] for j in juegos_pendientes})
+        
+        # 3. Traer todos los resultados ganadores de esas fechas en UNA SOLA CONSULTA
+        ganadores_res = self.db.supabase.table("historial")\
+            .select("*")\
+            .in_("fecha", fechas_pendientes)\
+            .eq("tipo", "Baloto")\
+            .execute()
+        
+        # Mapa de resultados: fecha -> datos del ganador
+        mapa_ganadores = {g['fecha']: g for g in ganadores_res.data}
         
         performance_batch = []
+        conteo_calificados = 0
+
         for juego in juegos_pendientes:
-            # Buscar el resultado ganador para esa fecha
-            ganador = self.db.supabase.table("historial").select("*")\
-                .eq("fecha", juego['fecha_sorteo'])\
-                .eq("tipo", "Baloto")\
-                .execute().data
+            fecha_buscada = juego['fecha_sorteo']
+            ganador = mapa_ganadores.get(fecha_buscada)
             
             if ganador:
-                ganador = ganador[0]
-                # Lógica de comparación
+                # Lógica de comparación de aciertos
                 principales_ganadores = {ganador['num1'], ganador['num2'], ganador['num3'], ganador['num4'], ganador['num5']}
                 principales_jugados = {juego['num1'], juego['num2'], juego['num3'], juego['num4'], juego['num5']}
                 
@@ -142,12 +155,18 @@ class ResultsUpdater:
                     "acierto_superbalota": acierto_sb,
                     "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 })
-            else:
-                print(f"[WAIT] Sorteo {juego['fecha_sorteo']} aún no disponible en historial.")
-
+                conteo_calificados += 1
+            
+        # 4. Inserción en bloques (Batching) para mayor seguridad
         if performance_batch:
-            self.db.supabase.table("rendimiento").insert(performance_batch).execute()
-            print(f"[SUCCESS] Calificados {len(performance_batch)} juegos exitosamente.")
+            batch_size = 100
+            for i in range(0, len(performance_batch), batch_size):
+                sub_batch = performance_batch[i : i + batch_size]
+                self.db.supabase.table("rendimiento").insert(sub_batch).execute()
+            
+            print(f"[SUCCESS] Calificados {conteo_calificados} juegos exitosamente en bloques.")
+        else:
+            print("[WAIT] Sorteos aún no disponibles en historial para los juegos pendientes.")
 
     def run(self):
         print("[START] Iniciando Actualización Maestra de Contolto...")

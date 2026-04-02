@@ -35,6 +35,9 @@ class GameGenerator:
         else:
             self.last_won_nums = set()
             self.last_won_sb = None
+        
+        # NUEVO: Cargar estadísticas de Superbalota una sola vez para evitar 1,800 consultas
+        self.sb_stats = self.db.get_superballot_stats()
 
     def get_next_draw_date(self):
         now = datetime.now()
@@ -112,22 +115,22 @@ class GameGenerator:
         return True
 
     def select_superballot(self):
-        stats = self.db.get_superballot_stats()
+        stats = self.sb_stats
         scores = {i: 0 for i in range(1, 17)}
-        for num, gap in stats['gaps'].items():
+        for num, gap in stats.get('gaps', {}).items():
             if 5 <= gap <= 15: scores[num] += 10
             elif gap > 20: scores[num] += 3
-        for num in stats['trending']: scores[num] += 2
+        for num in stats.get('trending', []): scores[num] += 2
         if self.last_won_sb in scores: scores[self.last_won_sb] = -99
         return max(scores, key=scores.get)
 
     def select_sb_caliente(self):
-        stats = self.db.get_superballot_stats()
+        stats = self.sb_stats
         trending = [n for n in stats.get('trending', []) if n != self.last_won_sb]
         return random.choice(trending) if trending else random.randint(1, 16)
 
     def select_sb_fria(self):
-        stats = self.db.get_superballot_stats()
+        stats = self.sb_stats
         gaps = {k: v for k, v in stats.get('gaps', {}).items() if k != self.last_won_sb}
         return max(gaps, key=gaps.get) if gaps else random.randint(1, 16)
 
@@ -174,7 +177,7 @@ class GameGenerator:
         """
         # Calcular números que están 'due' (les toca salir según ciclo)
         # Combinar con momentum
-        stats_sb = self.db.get_superballot_stats()
+        stats_sb = self.sb_stats
         gaps_now = stats_sb.get('gaps', {})
         due_numbers = [num for num, gap in gaps_now.items() if num in self.cycles and gap > self.cycles[num]]
         
@@ -256,25 +259,33 @@ class GameGenerator:
         }
         
         for name, funcs in strats.items():
-            if name in ["unica", "aleatoria"]:
-                nums, sb = funcs[0]()
-            else:
-                nums = funcs[0]()
-                sb = funcs[1]()
+            count = 300 if name in ["caliente", "fria", "balanceada", "mixta", "aleatoria", "elite"] else 1
+            for _ in range(count):
+                if name in ["unica", "aleatoria"]:
+                    nums, sb = funcs[0]()
+                else:
+                    nums = funcs[0]()
+                    sb = funcs[1]()
+                
+                juego = {"fecha_sorteo": fecha, "estrategia": name, "num1": nums[0], "num2": nums[1], "num3": nums[2], "num4": nums[3], "num5": nums[4], "num6": sb}
+                results["juegos"].append(juego)
             
-            juego = {"fecha_sorteo": fecha, "estrategia": name, "num1": nums[0], "num2": nums[1], "num3": nums[2], "num4": nums[3], "num5": nums[4], "num6": sb}
-            results["juegos"].append(juego)
-            print(f"✅ [{name.upper()}]: {nums} SB: {sb}")
-
-        os.makedirs("reports", exist_ok=True)
-        with open("reports/last_recommendation.json", "w", encoding="utf-8") as f:
-            json.dump(results, f, indent=4, ensure_ascii=False)
+            print(f"✅ [{name.upper()}]: {count} juego(s) generado(s).")
 
         if save_to_db:
-            for j in results["juegos"]:
-                self.db.supabase.table("juegos").delete().match({"fecha_sorteo": fecha, "estrategia": j["estrategia"]}).execute()
-            self.db.supabase.table("juegos").insert(results["juegos"]).execute()
-            print(f"✅ Juegos sincronizados (incluyendo ELITE).")
+            # Limpiar por estrategia una sola vez para evitar redundancia
+            for name in strats.keys():
+                self.db.supabase.table("juegos").delete().match({"fecha_sorteo": fecha, "estrategia": name}).execute()
+            
+            # Inserción en bloques de 50 para evitar errores de conexión o límites de petición
+            total_games = results["juegos"]
+            batch_size = 50
+            for i in range(0, len(total_games), batch_size):
+                batch = total_games[i:i + batch_size]
+                self.db.supabase.table("juegos").insert(batch).execute()
+                print(f"📤 Bloque de {len(batch)} juegos sincronizado...")
+            
+            print(f"✅ {len(total_games)} juegos sincronizados totales en la base de datos.")
 
 if __name__ == "__main__":
     gen = GameGenerator()

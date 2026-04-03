@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { 
   BarChart, 
@@ -13,7 +13,10 @@ import {
   Cell,
   Legend,
   LineChart,
-  Line
+  Line,
+  AreaChart,
+  Area,
+  ComposedChart
 } from 'recharts';
 import {
   TrendingUp,
@@ -76,6 +79,61 @@ export default function Home() {
   const [topPairs, setTopPairs] = useState<any[]>([]);
   const [topTrios, setTopTrios] = useState<any[]>([]);
   const [selectedCompanionNum, setSelectedCompanionNum] = useState<number | null>(null);
+  const [affinityLinks, setAffinityLinks] = useState<any[]>([]);
+  // NUEVO: Análisis de Cluster (Número seleccionado + 4 mejores amigos)
+  const clusterAnalysis = useMemo(() => {
+    if (!selectedCompanionNum || lastSorteosHistory.length === 0) return null;
+
+    const friendsMap: Record<number, number> = {};
+    lastSorteosHistory.forEach(s => {
+      const row = [s.num1, s.num2, s.num3, s.num4, s.num5];
+      if (row.includes(selectedCompanionNum)) {
+        row.filter(n => n !== selectedCompanionNum).forEach(n => {
+          friendsMap[n] = (friendsMap[n] || 0) + 1;
+        });
+      }
+    });
+
+    const friendsList = Object.entries(friendsMap)
+      .sort((a,b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([n]) => Number(n));
+
+    const cluster = [selectedCompanionNum, ...friendsList];
+
+    // Frecuencia e Combinaciones
+    let combo3 = 0, combo4 = 0, combo5 = 0;
+    lastSorteosHistory.forEach(s => {
+      const row = [s.num1, s.num2, s.num3, s.num4, s.num5];
+      const intersect = cluster.filter(n => row.includes(n)).length;
+      if (intersect === 3) combo3++;
+      if (intersect === 4) combo4++;
+      if (intersect === 5) combo5++;
+    });
+
+    // Distribución Química
+    const evens = cluster.filter(n => n % 2 === 0).length;
+    const odds = cluster.length - evens;
+    const ranges = { r1: 0, r2: 0, r3: 0, r4: 0 };
+    cluster.forEach(n => {
+      if (n <= 11) ranges.r1++;
+      else if (n <= 22) ranges.r2++;
+      else if (n <= 33) ranges.r3++;
+      else ranges.r4++;
+    });
+
+    const totalWins = combo3 + combo4 + combo5;
+
+    return {
+      cluster,
+      friends: friendsList,
+      pairHits: friendsMap,
+      combos: { combo3, combo4, combo5 },
+      chemistry: { evens, odds, ranges },
+      totalWins
+    };
+  }, [selectedCompanionNum, lastSorteosHistory]);
+
   const [activeTab, setActiveTab] = useState<'resultados' | 'historico' | 'analisis' | 'comportamiento'>('resultados');
 
   useEffect(() => {
@@ -286,43 +344,70 @@ export default function Home() {
             setBestStrategy(ranked[0].name);
           }
 
-          // NUEVO: Procesar Tendencia Temporal - REFORZADO
+          // NUEVO: Procesar Tendencia Temporal - REFORZADO con Estadísticas de Grupo (1 vs 300)
           const trendMap: Record<string, any> = {};
           rankData.forEach((item: any) => {
             const j = Array.isArray(item.juegos) ? item.juegos[0] : item.juegos;
-            // Usamos fecha_sorteo o fallback a created_at
             const rawFechaRaw = j?.fecha_sorteo || item.created_at;
             if (!rawFechaRaw) return;
             
             const dObj = new Date(rawFechaRaw);
-            const rawFecha = dObj.getTime();
-            const dateStr = dObj.toISOString().split('T')[0]; // Agrupar por día YYYY-MM-DD
+            const rawDate = dObj.getTime();
+            const dateStr = dObj.toISOString().split('T')[0];
 
             if (!trendMap[dateStr]) {
               trendMap[dateStr] = { 
                 dateLabel: formatDateShort(dateStr),
-                rawDate: rawFecha,
-                counts: {} as Record<string, { sum: number, total: number }>
+                rawDate: rawDate,
+                stats: {} as Record<string, number[]>
               };
             }
             
             let est = (j?.estrategia || '').toLowerCase().trim();
-            if (est === 'única') est = 'unica'; // Normalizar
+            if (est === 'única') est = 'unica';
             
-            const totalHitsForTrend = (item.aciertos_principales || 0) + (item.acierto_superbalota ? 1 : 0);
-
-            if (!trendMap[dateStr].counts[est]) trendMap[dateStr].counts[est] = { sum: 0, total: 0 };
-            trendMap[dateStr].counts[est].sum += totalHitsForTrend;
-            trendMap[dateStr].counts[est].total++;
+            const hits = (item.aciertos_principales || 0) + (item.acierto_superbalota ? 1 : 0);
+            if (!trendMap[dateStr].stats[est]) trendMap[dateStr].stats[est] = [];
+            trendMap[dateStr].stats[est].push(hits);
           });
 
           const finalTrend = Object.values(trendMap)
             .sort((a, b) => a.rawDate - b.rawDate)
             .map(t => {
               const row: any = { date: t.dateLabel };
-              Object.entries(t.counts).forEach(([name, val]: [string, any]) => {
-                row[name] = val.sum / val.total;
+              
+              Object.entries(t.stats).forEach(([name, hits]: [string, any]) => {
+                const avg = hits.reduce((a:number, b:number) => a + b, 0) / hits.length;
+                row[name] = avg;
+                
+                if (name === 'aleatoria') {
+                  row.alea_min = Math.min(...hits);
+                  row.alea_max = Math.max(...hits);
+                  row.alea_range = [row.alea_min, row.alea_max];
+                  row.alea_avg = avg;
+                }
               });
+
+              // Métricas Avanzadas (Real vs Aleatoria)
+              const realHitsArr = t.stats['real'] || [];
+              const aleaHitsArr = t.stats['aleatoria'] || [];
+              
+              if (realHitsArr.length > 0 && aleaHitsArr.length > 0) {
+                const realVal = realHitsArr[0]; // Tomamos el primer juego real del día
+                const totalAlea = aleaHitsArr.length;
+                
+                // Superioridad: ¿A cuántos del azar vencimos?
+                const beaten = aleaHitsArr.filter((h: number) => h < realVal).length;
+                const tied = aleaHitsArr.filter((h: number) => h === realVal).length;
+                row.superiority = ((beaten + (tied * 0.5)) / totalAlea) * 100;
+                
+                // Eficiencia: (Real / Promedio Azar) - Cuántas veces mejor es la IA
+                row.efficiency = row.alea_avg > 0 ? (realVal / row.alea_avg) : 0;
+              } else {
+                row.superiority = 0;
+                row.efficiency = 0;
+              }
+
               return row;
             })
             .slice(-20); // Mostrar más puntos si hay datos
@@ -334,15 +419,15 @@ export default function Home() {
           const totalSums: Record<string, { sum: number, total: number }> = {};
 
           const cumulativeTrend = Object.values(trendMap)
-            .sort((a, b) => a.rawDate - b.rawDate)
-            .map(t => {
+            .sort((a: any, b: any) => a.rawDate - b.rawDate)
+            .map((t: any) => {
               const row: any = { date: t.dateLabel };
               
               // Recorrer todas las estrategias que existan en este punto del tiempo
-              Object.entries(t.counts).forEach(([name, info]: [string, any]) => {
+              Object.entries(t.stats).forEach(([name, hits]: [string, any]) => {
                 if (!totalSums[name]) totalSums[name] = { sum: 0, total: 0 };
-                totalSums[name].sum += info.sum;
-                totalSums[name].total += info.total;
+                totalSums[name].sum += (hits as number[]).reduce((a, b) => a + b, 0);
+                totalSums[name].total += (hits as number[]).length;
                 row[name] = totalSums[name].sum / totalSums[name].total;
               });
 
@@ -559,6 +644,15 @@ export default function Home() {
 
             setTopPairs(sortedPairs);
             setTopTrios(sortedTrios);
+
+            // Guardar todos los enlaces para el Mapa Social (afinidades fuertes)
+            const links = Object.entries(pairCounts)
+              .filter(([, count]) => count >= 3)
+              .map(([key, count]) => {
+                const [a, b] = key.split('-').map(Number);
+                return { a, b, count };
+              });
+            setAffinityLinks(links);
         }
 
       } catch (err) {
@@ -990,268 +1084,368 @@ export default function Home() {
           </div>
         </article>
       </section>
-      {/* NUEVO: Evolución Temporal de las Estrategias */}
-      <section className="animate-in" style={{ marginTop: '1.5rem', marginBottom: '3rem', animationDelay: '0.6s' }}>
+      {/* SECCIÓN DE GRÁFICAS AVANZADAS DE RENDIMIENTO */}
+      <section className="animate-in" style={{ marginTop: '1.5rem', marginBottom: '3rem', animationDelay: '0.6s', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        
+        {/* Gráfica 1: Área de Probabilidad (1 vs 300) */}
         <article className="card" style={{ padding: '1.5rem' }}>
-          <div className="card-title" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <TrendingUp size={18} style={{ color: '#10b981' }} /> EVOLUCIÓN DEL RENDIMIENTO (PASO DEL TIEMPO)
+          <div className="card-title" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <TrendingUp size={18} style={{ color: '#3b82f6' }} /> IA REAL VS RANGO DE AZAR (1 VS 300)
+            </div>
+            <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>Franja gris representa el rango (Min-Max) de 300 juegos aleatorios</div>
           </div>
-          <div style={{ height: '350px', width: '100%', minWidth: 0 }}>
+          <div style={{ height: '300px', width: '100%', minWidth: 0 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trendData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+              <ComposedChart data={trendData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                 <XAxis dataKey="date" stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} />
                 <YAxis stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} />
                 <Tooltip 
                   contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '11px' }}
-                  formatter={(value: any, name: any) => [
-                    `${Number(value).toFixed(3)} Ac`, 
-                    `Estrategia: ${(name || '').toString().charAt(0).toUpperCase() + (name || '').toString().slice(1)}`
-                  ]}
                 />
-                <Legend iconType="line" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                <Line type="monotone" dataKey="real" name="IA Real" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6' }} activeDot={{ r: 6 }} connectNulls />
-                <Line type="monotone" dataKey="aleatoria" name="Azar" stroke="#64748b" strokeWidth={2} strokeDasharray="5 5" connectNulls />
-              </LineChart>
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                <Area type="monotone" dataKey="alea_range" name="Rango Azar (Min-Max)" fill="rgba(255,255,255,0.05)" stroke="transparent" />
+                <Line type="monotone" dataKey="alea_avg" name="Promedio Azar" stroke="#64748b" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                <Line type="monotone" dataKey="real" name="IA Real" stroke="#3b82f6" strokeWidth={4} dot={{ r: 5, fill: '#3b82f6' }} activeDot={{ r: 8 }} />
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
         </article>
-       </section>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
+          {/* Gráfica 2: Índice de Superioridad (Percentil) */}
+          <article className="card" style={{ padding: '1.5rem' }}>
+            <div className="card-title" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+               <Target size={18} style={{ color: '#10b981' }} /> ÍNDICE DE SUPERIORIDAD (%)
+            </div>
+            <div style={{ height: '250px', width: '100%', minWidth: 0 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trendData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                  <defs>
+                    <linearGradient id="colorSup" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="date" stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} />
+                  <YAxis domain={[0, 100]} stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}%`} />
+                  <Tooltip 
+                    contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '11px' }}
+                    formatter={(v: any) => [`${Number(v).toFixed(1)}%`, 'Superior a']}
+                  />
+                  <Area type="monotone" dataKey="superiority" name="Superioridad vs Azar" stroke="#10b981" fillOpacity={1} fill="url(#colorSup)" strokeWidth={3} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <p style={{ fontSize: '0.65rem', opacity: 0.5, marginTop: '1rem', textAlign: 'center' }}>
+              Indica a qué porcentaje de los 300 juegos aleatorios superó la IA en cada fecha.
+            </p>
+          </article>
+
+          {/* Gráfica 3: Eficiencia de la IA (Factor Multiplicador) */}
+          <article className="card" style={{ padding: '1.5rem' }}>
+            <div className="card-title" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+               <Activity size={18} style={{ color: '#fbbf24' }} /> FACTOR DE EFICIENCIA IA
+            </div>
+            <div style={{ height: '250px', width: '100%', minWidth: 0 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={trendData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="date" stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} />
+                  <YAxis stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}x`} />
+                  <Tooltip 
+                    contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '11px' }}
+                    formatter={(v: any) => [`${Number(v).toFixed(2)}x`, 'Eficiencia']}
+                  />
+                  <Bar dataKey="efficiency" name="Eficiencia x Tirada" fill="#fbbf24" radius={[4, 4, 0, 0]}>
+                    {trendData.map((_entry: any, index: number) => (
+                      <Cell key={`cell-${index}`} fill={_entry.efficiency >= 1 ? '#fbbf24' : '#ef4444'} opacity={0.8} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <p style={{ fontSize: '0.65rem', opacity: 0.5, marginTop: '1rem', textAlign: 'center' }}>
+              Muestra cuántas veces mejor rindió la IA comparada con el promedio esperado del azar.
+            </p>
+          </article>
+        </div>
+      </section>
         </>
       )}
 
       {activeTab === 'analisis' && (
         <>
-          {/* NUEVO: INTELIGENCIA DE AFINIDADES (PARES Y TRÍOS) */}
+          {/* SECCIÓN 1: AFINIDADES ESTÁTICAS */}
           <section className="animate-in" style={{ marginTop: '0.5rem', marginBottom: '2.5rem', animationDelay: '0.65s' }}>
-         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
-            
-            {/* Top Parejas de Oro */}
-            <article className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #10b981' }}>
-              <div className="card-title" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Sparkles size={18} style={{ color: '#10b981' }} /> PAREJAS DE ORO (MÁXIMA AFINIDAD)
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                {topPairs.slice(0, 10).map((p, idx) => (
-                  <div key={idx} style={{ 
-                    padding: '0.6rem', background: 'rgba(16, 185, 129, 0.05)', 
-                    borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.1)',
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                  }}>
-                     <div style={{ display: 'flex', gap: '0.4rem' }}>
-                       {p.nums.map((n: number) => (
-                         <span key={n} className="number-badge" style={{ width: '22px', height: '22px', fontSize: '0.7rem', background: '#10b981', color: '#fff', border: 'none' }}>{n}</span>
-                       ))}
-                     </div>
-                     <div style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>{p.count} veces</div>
-                  </div>
-                ))}
-              </div>
-            </article>
-
-            {/* Top Tríos de Poder */}
-            <article className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #8b5cf6' }}>
-              <div className="card-title" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Trophy size={18} style={{ color: '#8b5cf6' }} /> TRÍOS DE PODER (COMBOS FRECUENTES)
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                {topTrios.slice(0, 5).map((t, idx) => (
-                  <div key={idx} style={{ 
-                    padding: '0.6rem', background: 'rgba(139, 92, 246, 0.05)', 
-                    borderRadius: '8px', border: '1px solid rgba(139, 92, 246, 0.1)',
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                  }}>
-                     <div style={{ display: 'flex', gap: '0.4rem' }}>
-                       {t.nums.map((n: number) => (
-                         <span key={n} className="number-badge" style={{ width: '22px', height: '22px', fontSize: '0.7rem', background: '#8b5cf6', color: '#fff', border: 'none' }}>{n}</span>
-                       ))}
-                     </div>
-                     <div style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>{t.count} veces</div>
-                  </div>
-                ))}
-              </div>
-            </article>
-
-          </div>
-        </section>
-
-      {/* NUEVO: PANEL DE RED Y ANALIZADOR (2/3 - 1/3) */}
-      <section className="animate-in" style={{ marginTop: '1.5rem', marginBottom: '2.5rem', animationDelay: '0.68s' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.25rem' }}>
-          
-          {/* MAPA DE RED (2/3) */}
-          <article className="card" style={{ padding: '1.25rem', minHeight: '420px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-          <div className="card-title" style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Share2 size={18} style={{ color: '#3b82f6' }} /> MAPA SOCIAL DE BALOTAS (RED DE AFINIDAD)
-            </div>
-            <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>Líneas conectan números que salen juntos con frecuencia ({'>='} 3 veces)</div>
-          </div>
-          
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', position: 'relative', minHeight: '380px' }}>
-            <svg 
-              viewBox="0 0 600 600" 
-              style={{ width: '100%', maxWidth: '580px', height: 'auto', filter: 'drop-shadow(0 0 20px rgba(59, 130, 246, 0.1))' }}
-            >
-              {/* Líneas de Red (Enlaces) */}
-              {(() => {
-                 const links: any[] = [];
-                 const pairs: Record<string, number> = {};
-                 
-                 lastSorteosHistory.forEach(s => {
-                   const row = [s.num1, s.num2, s.num3, s.num4, s.num5].sort((a,b) => a-b);
-                   for (let i = 0; i < row.length; i++) {
-                     for (let j = i + 1; j < row.length; j++) {
-                       const key = `${row[i]}-${row[j]}`;
-                       pairs[key] = (pairs[key] || 0) + 1;
-                     }
-                   }
-                 });
-
-                 Object.entries(pairs).forEach(([key, count]) => {
-                   if (count >= 3) {
-                     const [a, b] = key.split('-').map(Number);
-                     const radius = 265;
-                     const cx = 300, cy = 300;
-                     
-                     const angleA = (a - 1) * (360 / 43) * (Math.PI / 180) - Math.PI / 2;
-                     const angleB = (b - 1) * (360 / 43) * (Math.PI / 180) - Math.PI / 2;
-                     
-                     const x1 = cx + radius * Math.cos(angleA);
-                     const y1 = cy + radius * Math.sin(angleA);
-                     const x2 = cx + radius * Math.cos(angleB);
-                     const y2 = cy + radius * Math.sin(angleB);
-                     
-                     const isActive = selectedCompanionNum === a || selectedCompanionNum === b;
-                     
-                     links.push(
-                       <line 
-                         key={key} 
-                         x1={x1} y1={y1} x2={x2} y2={y2} 
-                         stroke={isActive ? '#fbbf24' : 'rgba(255,255,255,0.08)'} 
-                         strokeWidth={isActive ? 2 : 1}
-                         style={{ transition: 'all 0.3s' }}
-                       />
-                     );
-                   }
-                 });
-                 return links;
-              })()}
-
-              {/* Nodos (Círculos) */}
-              {Array.from({ length: 43 }, (_, i) => i + 1).map(n => {
-                 const radius = 265;
-                 const cx = 300, cy = 300;
-                 const angle = (n - 1) * (360 / 43) * (Math.PI / 180) - Math.PI / 2;
-                 const x = cx + radius * Math.cos(angle);
-                 const y = cy + radius * Math.sin(angle);
-                 
-                 const isSelected = selectedCompanionNum === n;
-                 
-                 return (
-                   <g 
-                     key={n} 
-                     style={{ cursor: 'pointer' }} 
-                     onClick={() => setSelectedCompanionNum(n)}
-                   >
-                      <circle 
-                         cx={x} cy={y} 
-                         r={isSelected ? 14 : 10} 
-                         fill={isSelected ? '#fbbf24' : '#0f172a'} 
-                         stroke={isSelected ? '#fff' : 'rgba(255,255,255,0.3)'}
-                         strokeWidth="2"
-                         style={{ transition: 'all 0.3s' }}
-                      />
-                      <text 
-                         x={x} y={y + 4} 
-                         textAnchor="middle" 
-                         fontSize="9" 
-                         fontWeight="bold"
-                         fill={isSelected ? '#000' : '#fff'}
-                         style={{ pointerEvents: 'none', transition: 'all 0.3s' }}
-                      >
-                        {n}
-                      </text>
-                   </g>
-                 );
-              })}
-            </svg>
-            <div style={{ position: 'absolute', textAlign: 'center', pointerEvents: 'none' }}>
-               <div style={{ fontSize: '0.8rem', opacity: 0.4, textTransform: 'uppercase', letterSpacing: '1px' }}>Fuerzas de</div>
-               <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fbbf24' }}>COHESIÓN</div>
-            </div>
-          </div>
-        </article>
-
-        {/* ANALIZADOR LATERAL (1/3) */}
-        <article className="card" style={{ padding: '1rem', borderLeft: '4px solid #fbbf24', background: 'linear-gradient(145deg, rgba(251, 191, 36, 0.02) 0%, rgba(15, 23, 42, 0) 100%)', display: 'flex', flexDirection: 'column' }}>
-          <div className="card-title" style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Target size={18} style={{ color: '#fbbf24' }} /> MEJORES AMIGOS
-          </div>
-          <p style={{ fontSize: '0.7rem', opacity: 0.6, marginBottom: '0.75rem' }}>Toca un número para ver sus conexiones:</p>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4px', marginBottom: '1.25rem', background: 'rgba(0,0,0,0.2)', padding: '6px', borderRadius: '8px' }}>
-            {Array.from({ length: 43 }, (_, i) => i + 1).map(n => (
-              <div 
-                key={n}
-                onClick={() => setSelectedCompanionNum(n)}
-                style={{
-                  padding: '4px 0',
-                  fontSize: '0.6rem',
-                  textAlign: 'center',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  background: selectedCompanionNum === n ? '#fbbf24' : 'rgba(255,255,255,0.03)',
-                  color: selectedCompanionNum === n ? '#000' : '#fff',
-                  border: '1px solid rgba(255,255,255,0.05)',
-                  transition: 'all 0.1s'
-                }}
-              >
-                {n}
-              </div>
-            ))}
-          </div>
-
-          {selectedCompanionNum ? (
-            <div className="animate-in" style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
-                 <div className="number-badge" style={{ width: '40px', height: '40px', fontSize: '1.2rem', background: 'transparent', borderColor: '#fbbf24', color: '#fbbf24', borderWidth: '2px' }}>{selectedCompanionNum}</div>
-                 <div style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>TOP COMPAÑEROS</div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                 {(() => {
-                   const friends: Record<number, number> = {};
-                   lastSorteosHistory.forEach(s => {
-                     const row = [s.num1, s.num2, s.num3, s.num4, s.num5];
-                     if (row.includes(selectedCompanionNum)) {
-                       row.filter(n => n !== selectedCompanionNum).forEach(n => {
-                         friends[n] = (friends[n] || 0) + 1;
-                       });
-                     }
-                   });
-                   return Object.entries(friends)
-                     .sort((a,b) => b[1] - a[1])
-                     .slice(0, 5)
-                     .map(([n, count]) => (
-                       <div key={n} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.03)' }}>
-                         <div className="number-badge" style={{ width: '24px', height: '24px', fontSize: '0.7rem' }}>{n}</div>
-                         <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#3b82f6' }}>{count} aciertos</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
+              <article className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #10b981' }}>
+                <div className="card-title" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Sparkles size={18} style={{ color: '#10b981' }} /> PAREJAS DE ORO
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  {topPairs.slice(0, 10).map((p, idx) => (
+                    <div key={idx} style={{ 
+                      padding: '0.6rem', background: 'rgba(16, 185, 129, 0.05)', 
+                      borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.1)',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                    }}>
+                       <div style={{ display: 'flex', gap: '0.4rem' }}>
+                         {p.nums.map((n: number) => (
+                           <span key={n} className="number-badge" style={{ width: '22px', height: '22px', fontSize: '0.7rem', background: '#10b981', color: '#fff', border: 'none' }}>{n}</span>
+                         ))}
                        </div>
-                     ));
-                 })()}
+                       <div style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>{p.count}v</div>
+                    </div>
+                  ))}
+                </div>
+              </article>
+
+              <article className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #8b5cf6' }}>
+                <div className="card-title" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Trophy size={18} style={{ color: '#8b5cf6' }} /> TRÍOS DE PODER
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                  {topTrios.slice(0, 5).map((t, idx) => (
+                    <div key={idx} style={{ 
+                      padding: '0.6rem', background: 'rgba(139, 92, 246, 0.05)', 
+                      borderRadius: '8px', border: '1px solid rgba(139, 92, 246, 0.1)',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                    }}>
+                       <div style={{ display: 'flex', gap: '0.4rem' }}>
+                         {t.nums.map((n: number) => (
+                           <span key={n} className="number-badge" style={{ width: '22px', height: '22px', fontSize: '0.7rem', background: '#8b5cf6', color: '#fff', border: 'none' }}>{n}</span>
+                         ))}
+                       </div>
+                       <div style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>{t.count}v</div>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            </div>
+          </section>
+
+          {/* SECCIÓN 2: ANALIZADOR INTEGRADO (SELECTOR SUPERIOR + 2 COLUMNAS) */}
+          <section className="animate-in" style={{ marginTop: '1.5rem', marginBottom: '2.5rem', animationDelay: '0.68s' }}>
+            
+            {/* SELECTOR SUPERIOR */}
+            <article className="card" style={{ padding: '1rem 1.5rem', marginBottom: '1.25rem', borderBottom: '2px solid rgba(251, 191, 36, 0.1)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                  <Settings size={18} style={{ color: '#fbbf24' }} /> SELECTOR DE NÚCLEO PARA ANÁLISIS
+                </div>
+                <div style={{ fontSize: '0.7rem', opacity: 0.5 }}>Selecciona un número para ver sus conexiones y clusters</div>
               </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(40px, 1fr))', gap: '6px' }}>
+                {Array.from({ length: 43 }, (_, i) => i + 1).map(n => (
+                  <div 
+                    key={n}
+                    onClick={() => setSelectedCompanionNum(n)}
+                    style={{
+                      padding: '8px 0', fontSize: '0.8rem', textAlign: 'center', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold',
+                      background: selectedCompanionNum === n ? '#fbbf24' : 'rgba(255,255,255,0.03)',
+                      color: selectedCompanionNum === n ? '#000' : '#fff',
+                      border: '1px solid rgba(255,255,255,0.05)', 
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: selectedCompanionNum === n ? '0 0 15px rgba(251, 191, 36, 0.3)' : 'none',
+                      transform: selectedCompanionNum === n ? 'scale(1.05)' : 'none'
+                    }}
+                  >
+                    {n}
+                  </div>
+                ))}
+              </div>
+            </article>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '1.25rem', alignItems: 'stretch' }}>
+              
+              {/* Col 1: Mapa Social */}
+              <article className="card" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.04) 0%, transparent 70%)', pointerEvents: 'none' }} />
+                
+                <div className="card-title" style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Share2 size={18} style={{ color: '#3b82f6' }} /> RED DE AFINIDAD CRONOLÓGICA
+                  </div>
+                  <div style={{ fontSize: '0.7rem', opacity: 0.6, background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '10px' }}>
+                    Afinidad {'>='} 3 hits
+                  </div>
+                </div>
+                
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', minHeight: '450px' }}>
+                  <svg viewBox="0 0 600 600" style={{ width: '100%', maxWidth: '560px', height: 'auto' }}>
+                    <defs>
+                      <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="3" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                      </filter>
+                    </defs>
+
+                    {/* Enlaces (Links) Activos - Encima de los grises */}
+                    {affinityLinks.map((link) => {
+                      const radius = 260, cx = 300, cy = 300;
+                      const angleA = (link.a - 1) * (360 / 43) * (Math.PI / 180) - Math.PI / 2;
+                      const angleB = (link.b - 1) * (360 / 43) * (Math.PI / 180) - Math.PI / 2;
+                      const x1 = cx + radius * Math.cos(angleA), y1 = cy + radius * Math.sin(angleA);
+                      const x2 = cx + radius * Math.cos(angleB), y2 = cy + radius * Math.sin(angleB);
+                      const isActive = selectedCompanionNum === link.a || selectedCompanionNum === link.b;
+                      
+                      return isActive && (
+                        <line 
+                          key={`${link.a}-${link.b}-active`} 
+                          x1={x1} y1={y1} x2={x2} y2={y2} 
+                          stroke="#fbbf24" 
+                          strokeWidth={2.5}
+                          style={{ transition: 'all 0.4s ease', filter: 'url(#glow)', opacity: 0.7 }} 
+                        />
+                      );
+                    })}
+                    
+                    {/* Enlaces base (todos los >= 3) */}
+                    {affinityLinks.map((link) => {
+                      const radius = 260, cx = 300, cy = 300;
+                      const angleA = (link.a - 1) * (360 / 43) * (Math.PI / 180) - Math.PI / 2;
+                      const angleB = (link.b - 1) * (360 / 43) * (Math.PI / 180) - Math.PI / 2;
+                      const x1 = cx + radius * Math.cos(angleA), y1 = cy + radius * Math.sin(angleA);
+                      const x2 = cx + radius * Math.cos(angleB), y2 = cy + radius * Math.sin(angleB);
+                      
+                      return (
+                        <line 
+                          key={`${link.a}-${link.b}`} 
+                          x1={x1} y1={y1} x2={x2} y2={y2} 
+                          stroke="rgba(255,255,255,0.04)" 
+                          strokeWidth={1}
+                        />
+                      );
+                    })}
+
+                    {/* Nodos (Círculos) */}
+                    {Array.from({ length: 43 }, (_, i) => i + 1).map(n => {
+                       const radius = 260, cx = 300, cy = 300;
+                       const angle = (n - 1) * (360 / 43) * (Math.PI / 180) - Math.PI / 2;
+                       const x = cx + radius * Math.cos(angle), y = cy + radius * Math.sin(angle);
+                       const isSelected = selectedCompanionNum === n;
+                       const isFriend = clusterAnalysis?.friends.includes(n);
+
+                       return (
+                         <g key={n} style={{ cursor: 'pointer' }} onClick={() => setSelectedCompanionNum(n)}>
+                            {isSelected && <circle cx={x} cy={y} r={22} fill="rgba(251, 191, 36, 0.15)" className="animate-pulse" />}
+                            <circle 
+                              cx={x} cy={y} 
+                              r={isSelected ? 15 : (isFriend ? 12 : 9)} 
+                              fill={isSelected ? '#fbbf24' : (isFriend ? '#3b82f6' : '#0f172a')} 
+                              stroke={isSelected ? '#fff' : (isFriend ? 'rgba(59, 130, 246, 0.6)' : 'rgba(255,255,255,0.2)')} 
+                              strokeWidth={isSelected ? 3 : 1.5} 
+                              style={{ transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }} 
+                            />
+                            <text 
+                              x={x} y={y + 4} 
+                              textAnchor="middle" 
+                              fontSize={isSelected ? '10' : '8'} 
+                              fontWeight="bold" 
+                              fill={isSelected ? '#000' : '#fff'} 
+                              style={{ pointerEvents: 'none' }}
+                            >
+                              {n}
+                            </text>
+                         </g>
+                       );
+                    })}
+                  </svg>
+                  
+                  <div style={{ position: 'absolute', textAlign: 'center', pointerEvents: 'none', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+                    <div style={{ fontSize: '0.6rem', opacity: 0.3, textTransform: 'uppercase', letterSpacing: '3px', marginBottom: '-5px' }}>Fuerzas de</div>
+                    <div style={{ fontSize: '2.5rem', fontWeight: '900', color: 'rgba(255,255,255,0.03)', letterSpacing: '4px' }}>CONFLUENCIA</div>
+                  </div>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)', fontSize: '0.65rem', opacity: 0.6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fbbf24' }} /> Seleccionado
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6' }} /> Mejores Amigos
+                  </div>
+                </div>
+              </article>
+
+              {/* Col 2: Análisis */}
+              <article className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #fbbf24', display: 'flex', flexDirection: 'column' }}>
+                {selectedCompanionNum && clusterAnalysis ? (
+                  <div className="animate-in" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                       <div className="number-badge" style={{ width: '50px', height: '50px', fontSize: '1.4rem', background: 'transparent', borderColor: '#fbbf24', color: '#fbbf24', borderWidth: '2px' }}>{selectedCompanionNum}</div>
+                       <div>
+                         <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#fff' }}>ANÁLISIS DE CLUSTER</div>
+                         <div style={{ fontSize: '0.7rem', opacity: 0.5 }}>Número base + 4 acompañantes</div>
+                       </div>
+                    </div>
+
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.75rem', opacity: 0.8, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Trophy size={14} style={{ color: '#3b82f6' }} /> AFINIDAD DIRECTA (MEJORES AMIGOS)
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                         {clusterAnalysis.friends.map(n => (
+                           <div key={n} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(59, 130, 246, 0.05)', padding: '0.75rem', borderRadius: '10px', border: '1px solid rgba(59, 130, 246, 0.1)' }}>
+                             <div className="number-badge" style={{ width: '26px', height: '26px', fontSize: '0.8rem', background: '#3b82f6', border: 'none' }}>{n}</div>
+                             <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#fff' }}>{clusterAnalysis.pairHits[n]} hits</div>
+                           </div>
+                         ))}
+                      </div>
+
+                      <div style={{ marginBottom: '1.25rem' }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', opacity: 0.8 }}>RENDIMIENTO DEL COMBO (HISTÓRICO)</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+                           <div style={{ textAlign: 'center', padding: '0.75rem', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '10px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                             <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#10b981' }}>{clusterAnalysis.combos.combo3}</div>
+                             <div style={{ fontSize: '0.65rem', opacity: 0.7 }}>3 Hits</div>
+                           </div>
+                           <div style={{ textAlign: 'center', padding: '0.75rem', background: 'rgba(59, 130, 246, 0.08)', borderRadius: '10px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                             <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#3b82f6' }}>{clusterAnalysis.combos.combo4}</div>
+                             <div style={{ fontSize: '0.65rem', opacity: 0.7 }}>4 Hits</div>
+                           </div>
+                           <div style={{ textAlign: 'center', padding: '0.75rem', background: 'rgba(251, 191, 36, 0.08)', borderRadius: '10px', border: '1px solid rgba(251, 191, 36, 0.2)' }}>
+                             <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#fbbf24' }}>{clusterAnalysis.combos.combo5}</div>
+                             <div style={{ fontSize: '0.65rem', opacity: 0.7 }}>5 Hits</div>
+                           </div>
+                        </div>
+                        <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', textAlign: 'center', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                          <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{clusterAnalysis.totalWins} premios totales acumulados</div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', opacity: 0.8 }}>BALANCE QUÍMICO DEL GRUPO</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 2fr', gap: '0.75rem' }}>
+                          <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <div style={{ fontSize: '1rem', fontWeight: 'bold' }}>{clusterAnalysis.chemistry.evens}P / {clusterAnalysis.chemistry.odds}I</div>
+                            <div style={{ fontSize: '0.6rem', opacity: 0.5 }}>Pares/Impares</div>
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.5rem' }}>
+                             {[{l:'R1',v:clusterAnalysis.chemistry.ranges.r1},{l:'R2',v:clusterAnalysis.chemistry.ranges.r2},{l:'R3',v:clusterAnalysis.chemistry.ranges.r3},{l:'R4',v:clusterAnalysis.chemistry.ranges.r4}].map(r => (
+                               <div key={r.l} style={{ textAlign: 'center', padding: '0.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+                                 <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{r.v}</div>
+                                 <div style={{ fontSize: '0.6rem', opacity: 0.5 }}>{r.l}</div>
+                               </div>
+                             ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed rgba(255,255,255,0.05)', borderRadius: '12px', fontSize: '0.9rem', opacity: 0.3, textAlign: 'center', padding: '3rem' }}>
+                    Selecciona un número del selector superior para iniciar el análisis profundo de afinidades
+                  </div>
+                )}
+              </article>
             </div>
-          ) : (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '0.8rem', opacity: 0.4, textAlign: 'center', padding: '2rem' }}>
-              Selecciona un número para analizar su red de afinidad
-            </div>
-          )}
-        </article>
-      </div>
-    </section>
-  </>
-)}
+          </section>
+        </>
+      )}
 
 {activeTab === 'comportamiento' && (
   <>

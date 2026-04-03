@@ -31,5 +31,5 @@ FRIA         | Promedio: 0.54 | S.B. Ganadas: 4 | Total Juegos: 39
 BALANCEADA   | Promedio: 0.49 | S.B. Ganadas: 6 | Total Juegos: 39
 ELITE        | Promedio: 0.30 | S.B. Ganadas: 2 | Total Juegos: 10
 ==========================================================================================
-Reporte generado el: 2026-04-03 08:38:04
+Reporte generado el: 2026-04-03 10:00:37
 Nota: El reporte muestra cuales numeros especificos muerden la suerte.

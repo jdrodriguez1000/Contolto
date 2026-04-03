@@ -124,13 +124,27 @@ export default function Home() {
 
     const totalWins = combo3 + combo4 + combo5;
 
+    // NUEVO: Afinidad con Superbalotas
+    const sbMap: Record<number, number> = {};
+    lastSorteosHistory.forEach(s => {
+      const row = [s.num1, s.num2, s.num3, s.num4, s.num5];
+      if (row.includes(selectedCompanionNum)) {
+        sbMap[s.num6] = (sbMap[s.num6] || 0) + 1;
+      }
+    });
+    const superballAffinities = Object.entries(sbMap)
+      .sort((a,b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([n, count]) => ({ num: Number(n), count }));
+
     return {
       cluster,
       friends: friendsList,
       pairHits: friendsMap,
       combos: { combo3, combo4, combo5 },
       chemistry: { evens, odds, ranges },
-      totalWins
+      totalWins,
+      superballAffinities
     };
   }, [selectedCompanionNum, lastSorteosHistory]);
 
@@ -709,16 +723,16 @@ export default function Home() {
           <History size={16} /> HISTÓRICO
         </button>
         <button 
-          onClick={() => setActiveTab('analisis')}
-          className={`tab-button ${activeTab === 'analisis' ? 'active' : ''}`}
-        >
-          <Share2 size={16} /> ANÁLISIS
-        </button>
-        <button 
           onClick={() => setActiveTab('comportamiento')}
           className={`tab-button ${activeTab === 'comportamiento' ? 'active' : ''}`}
         >
           <TrendingUp size={16} /> COMPORTAMIENTO
+        </button>
+        <button 
+          onClick={() => setActiveTab('analisis')}
+          className={`tab-button ${activeTab === 'analisis' ? 'active' : ''}`}
+        >
+          <Share2 size={16} /> PERSONALIZADO
         </button>
       </nav>
 
@@ -1178,57 +1192,8 @@ export default function Home() {
 
       {activeTab === 'analisis' && (
         <>
-          {/* SECCIÓN 1: AFINIDADES ESTÁTICAS */}
-          <section className="animate-in" style={{ marginTop: '0.5rem', marginBottom: '2.5rem', animationDelay: '0.65s' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
-              <article className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #10b981' }}>
-                <div className="card-title" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Sparkles size={18} style={{ color: '#10b981' }} /> PAREJAS DE ORO
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  {topPairs.slice(0, 10).map((p, idx) => (
-                    <div key={idx} style={{ 
-                      padding: '0.6rem', background: 'rgba(16, 185, 129, 0.05)', 
-                      borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.1)',
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                    }}>
-                       <div style={{ display: 'flex', gap: '0.4rem' }}>
-                         {p.nums.map((n: number) => (
-                           <span key={n} className="number-badge" style={{ width: '22px', height: '22px', fontSize: '0.7rem', background: '#10b981', color: '#fff', border: 'none' }}>{n}</span>
-                         ))}
-                       </div>
-                       <div style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>{p.count}v</div>
-                    </div>
-                  ))}
-                </div>
-              </article>
-
-              <article className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #8b5cf6' }}>
-                <div className="card-title" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Trophy size={18} style={{ color: '#8b5cf6' }} /> TRÍOS DE PODER
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                  {topTrios.slice(0, 5).map((t, idx) => (
-                    <div key={idx} style={{ 
-                      padding: '0.6rem', background: 'rgba(139, 92, 246, 0.05)', 
-                      borderRadius: '8px', border: '1px solid rgba(139, 92, 246, 0.1)',
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                    }}>
-                       <div style={{ display: 'flex', gap: '0.4rem' }}>
-                         {t.nums.map((n: number) => (
-                           <span key={n} className="number-badge" style={{ width: '22px', height: '22px', fontSize: '0.7rem', background: '#8b5cf6', color: '#fff', border: 'none' }}>{n}</span>
-                         ))}
-                       </div>
-                       <div style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>{t.count}v</div>
-                    </div>
-                  ))}
-                </div>
-              </article>
-            </div>
-          </section>
-
-          {/* SECCIÓN 2: ANALIZADOR INTEGRADO (SELECTOR SUPERIOR + 2 COLUMNAS) */}
-          <section className="animate-in" style={{ marginTop: '1.5rem', marginBottom: '2.5rem', animationDelay: '0.68s' }}>
+          {/* SECCIÓN selector moved up since pairs/trios moved to Comportamiento */}
+          <section className="animate-in" style={{ marginTop: '0.5rem', marginBottom: '2.5rem', animationDelay: '0.1s' }}>
             
             {/* SELECTOR SUPERIOR */}
             <article className="card" style={{ padding: '1rem 1.5rem', marginBottom: '1.25rem', borderBottom: '2px solid rgba(251, 191, 36, 0.1)' }}>
@@ -1417,7 +1382,7 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <div>
+                      <div style={{ marginBottom: '1.25rem' }}>
                         <div style={{ fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', opacity: 0.8 }}>BALANCE QUÍMICO DEL GRUPO</div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 2fr', gap: '0.75rem' }}>
                           <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
@@ -1432,6 +1397,27 @@ export default function Home() {
                                </div>
                              ))}
                           </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', opacity: 0.8, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                           <Trophy size={14} style={{ color: '#f59e0b' }} /> TRINIDAD DE SUPERBALOTAS (AFINIDAD)
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
+                           {clusterAnalysis.superballAffinities.map((sb, i) => (
+                             <div key={i} style={{ 
+                               textAlign: 'center', padding: '0.75rem', background: 'rgba(245, 158, 11, 0.05)', 
+                               borderRadius: '12px', border: '1px solid rgba(245, 158, 11, 0.1)',
+                               position: 'relative'
+                             }}>
+                               <div style={{ fontSize: '0.55rem', position: 'absolute', top: '-8px', left: '50%', transform: 'translateX(-50%)', background: '#1e293b', padding: '0 5px', color: '#f59e0b', fontWeight: 'bold', borderRadius: '4px' }}>
+                                 {i === 0 ? 'ESTELAR' : (i === 1 ? 'ALTA' : 'MEDIA')}
+                               </div>
+                               <div className="number-badge" style={{ margin: '0 auto 0.5rem', width: '32px', height: '32px', fontSize: '1rem', background: 'transparent', borderColor: '#f59e0b', color: '#f59e0b', borderWidth: '1.5px' }}>{sb.num}</div>
+                               <div style={{ fontSize: '0.7rem', fontWeight: 'bold', color: '#fff' }}>{sb.count} hits</div>
+                             </div>
+                           ))}
                         </div>
                       </div>
                     </div>
@@ -1605,6 +1591,55 @@ export default function Home() {
           </table>
         </div>
       </article>
+
+      {/* AFINIDADES ESTÁTICAS - MOVIDAS DESDE ANÁLISIS POR PETICIÓN DEL USUARIO */}
+      <section className="animate-in" style={{ marginTop: '1.5rem', marginBottom: '2.5rem', animationDelay: '0.3s' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
+          <article className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #10b981' }}>
+            <div className="card-title" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Sparkles size={18} style={{ color: '#10b981' }} /> PAREJAS DE ORO
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              {topPairs.slice(0, 10).map((p, idx) => (
+                <div key={idx} style={{ 
+                  padding: '0.6rem', background: 'rgba(16, 185, 129, 0.05)', 
+                  borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.1)',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                }}>
+                   <div style={{ display: 'flex', gap: '0.4rem' }}>
+                     {p.nums.map((n: number) => (
+                       <span key={n} className="number-badge" style={{ width: '22px', height: '22px', fontSize: '0.7rem', background: '#10b981', color: '#fff', border: 'none' }}>{n}</span>
+                     ))}
+                   </div>
+                   <div style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>{p.count}v</div>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #8b5cf6' }}>
+            <div className="card-title" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Trophy size={18} style={{ color: '#8b5cf6' }} /> TRÍOS DE PODER
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              {topTrios.slice(0, 5).map((t, idx) => (
+                <div key={idx} style={{ 
+                  padding: '0.6rem', background: 'rgba(139, 92, 246, 0.05)', 
+                  borderRadius: '8px', border: '1px solid rgba(139, 92, 246, 0.1)',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                }}>
+                   <div style={{ display: 'flex', gap: '0.4rem' }}>
+                     {t.nums.map((n: number) => (
+                       <span key={n} className="number-badge" style={{ width: '22px', height: '22px', fontSize: '0.7rem', background: '#8b5cf6', color: '#fff', border: 'none' }}>{n}</span>
+                     ))}
+                   </div>
+                   <div style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>{t.count}v</div>
+                </div>
+              ))}
+            </div>
+          </article>
+        </div>
+      </section>
     </section>
   </>
 )}

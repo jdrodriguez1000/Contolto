@@ -43,7 +43,7 @@ class GameGenerator:
         now = datetime.now()
         current_weekday = now.weekday()
         current_hour = now.hour
-        draw_days = [0, 2, 4]  # Lunes, Miércoles, Viernes 
+        draw_days = [0, 2, 5]  # Lunes, Miércoles, Sábado 
         if current_weekday in draw_days and current_hour < 20:
             return now.strftime("%Y-%m-%d")
         for i in range(1, 8):
@@ -133,6 +133,28 @@ class GameGenerator:
         stats = self.sb_stats
         gaps = {k: v for k, v in stats.get('gaps', {}).items() if k != self.last_won_sb}
         return max(gaps, key=gaps.get) if gaps else random.randint(1, 16)
+
+    def select_superballot_real(self):
+        """
+        LÓGICA EVOLUTIVA: Sigue a la estrategia lider en aciertos de SB.
+        """
+        try:
+            sb_ranked = self.db.get_superballot_ranking()
+            king_sb = sb_ranked[0] if sb_ranked else "mixta"
+            
+            print(f"👑 [SB LEARNING]: El actual Rey de SB es '{king_sb.upper()}'. Copiando su lógica...")
+            
+            if king_sb == "caliente":
+                return self.select_sb_caliente()
+            elif king_sb == "fria":
+                return self.select_sb_fria()
+            elif king_sb == "balanceada":
+                return random.randint(1, 16)
+            else:
+                return self.select_superballot()
+        except Exception as e:
+            print(f"⚠️ Error en learning de SB: {e}")
+            return self.select_superballot()
 
     def generate_fria(self):
         for _ in range(200):
@@ -248,18 +270,18 @@ class GameGenerator:
         results = {"metadata": {"fecha_generacion": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "fecha_sorteo_objetivo": fecha}, "juegos": []}
         
         strats = {
+            "real": (self.generate_real, self.select_superballot_real),
+            "unica": (self.generate_unica, None),
             "caliente": (self.generate_caliente, self.select_sb_caliente),
             "fria": (self.generate_fria, self.select_sb_fria),
             "mixta": (self.generate_mixta, self.select_superballot),
             "balanceada": (self.generate_balanceada, lambda: random.randint(1, 16)),
             "elite": (self.generate_elite, self.select_superballot),
-            "real": (self.generate_real, self.select_superballot),
-            "unica": (self.generate_unica, None),
             "aleatoria": (self.generate_aleatoria, None)
         }
         
         for name, funcs in strats.items():
-            count = 300 if name in ["caliente", "fria", "balanceada", "mixta", "aleatoria", "elite"] else 1
+            count = 30 if name in ["caliente", "fria", "balanceada", "mixta", "aleatoria", "elite"] else 1
             for _ in range(count):
                 if name in ["unica", "aleatoria"]:
                     nums, sb = funcs[0]()
@@ -282,10 +304,13 @@ class GameGenerator:
             batch_size = 50
             for i in range(0, len(total_games), batch_size):
                 batch = total_games[i:i + batch_size]
-                self.db.supabase.table("juegos").insert(batch).execute()
-                print(f"📤 Bloque de {len(batch)} juegos sincronizado...")
+                try:
+                    self.db.supabase.table("juegos").insert(batch).execute()
+                    print(f"📤 Bloque de {len(batch)} juegos sincronizado...")
+                except Exception as e:
+                    print(f"⚠️ Error al sincronizar bloque: {e}")
             
-            print(f"✅ {len(total_games)} juegos sincronizados totales en la base de datos.")
+            print(f"✅ Proceso de sincronización finalizado.")
 
 if __name__ == "__main__":
     gen = GameGenerator()

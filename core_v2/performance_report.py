@@ -31,7 +31,7 @@ class PerformanceReporter:
         rendimiento_data = self.db.supabase.table("rendimiento")\
             .select("*, juegos(*)")\
             .order("created_at", desc=True)\
-            .limit(2000)\
+            .limit(10000)\
             .execute().data
 
         if not rendimiento_data:
@@ -64,7 +64,7 @@ class PerformanceReporter:
         for key in sorted_keys:
             fecha, est = key
             data = resumen_sorteo[key]
-            avg = data["hits"] / data["total"]
+            avg = (data["hits"] + data["sb"]) / data["total"]
             linea = f"{fecha:<12} | {est.upper():<12} | {data['total']:<14} | {avg:<15.2f} | {data['sb']}"
             smart_print(linea)
 
@@ -73,7 +73,22 @@ class PerformanceReporter:
         smart_print("[ RANKING DE ESTRATEGIAS - ALL TIME ]")
         smart_print("-" * 90)
         
-        all_perf = self.db.supabase.table("rendimiento").select("*, juegos(estrategia)").execute().data
+        all_perf = []
+        from_idx = 0
+        to_idx = 999
+        has_more = True
+        
+        while has_more:
+            batch = self.db.supabase.table("rendimiento").select("*, juegos(estrategia)").range(from_idx, to_idx).execute().data
+            if batch:
+                all_perf.extend(batch)
+                from_idx += 1000
+                to_idx += 1000
+                if len(batch) < 1000:
+                    has_more = False
+            else:
+                has_more = False
+
         ranking = {}
         for p in all_perf:
             if not p.get('juegos'): continue
@@ -85,10 +100,10 @@ class PerformanceReporter:
             if p['acierto_superbalota']:
                 ranking[est]["sb"] += 1
         
-        sorted_ranking = sorted(ranking.items(), key=lambda x: x[1]["sum_aciertos"]/x[1]["total"] if x[1]["total"] > 0 else 0, reverse=True)
+        sorted_ranking = sorted(ranking.items(), key=lambda x: (x[1]["sum_aciertos"] + x[1]["sb"]) / x[1]["total"] if x[1]["total"] > 0 else 0, reverse=True)
 
         for est, data in sorted_ranking:
-            avg = data["sum_aciertos"] / data["total"]
+            avg = (data["sum_aciertos"] + data["sb"]) / data["total"]
             smart_print("%-12s | Promedio: %.2f | S.B. Ganadas: %d | Total Juegos: %d" % (est.upper(), avg, data['sb'], data['total']))
 
         smart_print("=" * 90)

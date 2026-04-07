@@ -28,7 +28,13 @@ import {
   History,
   Target,
   Sparkles,
-  Share2
+  Share2,
+  LayoutDashboard,
+  Search,
+  ChevronRight,
+  Filter,
+  AlertCircle,
+  BarChart3
 } from 'lucide-react';
 
 interface Sorteo {
@@ -148,7 +154,7 @@ export default function Home() {
     };
   }, [selectedCompanionNum, lastSorteosHistory]);
 
-  const [activeTab, setActiveTab] = useState<'resultados' | 'historico' | 'analisis' | 'comportamiento'>('resultados');
+  const [activeTab, setActiveTab] = useState<'resultados' | 'historico' | 'estrategias' | 'rendimiento' | 'analisis'>('resultados');
 
   useEffect(() => {
     async function fetchJackpot() {
@@ -182,136 +188,223 @@ export default function Home() {
           setLastSorteo(latestWinner);
         }
 
-        // 2. Mejor estrategia (last 20)
-        console.log("DASHBOARD [2/6]: Consultando mejor estrategia...");
-        const { data: rendData, error: err2 } = await supabase
-          .from('rendimiento')
-          .select(`
-            aciertos_principales,
-            juegos ( estrategia )
-          `)
-          .order('created_at', { ascending: false })
-          .limit(20);
-
-        if (err2) console.error("Error Paso 2:", err2);
-        if (rendData) {
-          const stats: Record<string, number[]> = {};
-          rendData.forEach((item: any) => {
-             const juego = Array.isArray(item.juegos) ? item.juegos[0] : item.juegos;
-             const est = juego?.estrategia;
-             if (est) {
-                if (!stats[est]) stats[est] = [];
-                stats[est].push(item.aciertos_principales);
-             }
-          });
-          
-          let best = 'Caliente';
-          let maxAvg = -1;
-          Object.entries(stats).forEach(([name, values]) => {
-             const avg = values.reduce((a, b) => a + b, 0) / values.length;
-             if (avg > maxAvg) {
-                maxAvg = avg;
-                best = name;
-             }
-          });
-          setBestStrategy(best);
-        }
-
-        // 4. Ranking (Con paginación para superar el límite de 1,000 de Supabase)
-        console.log("DASHBOARD [4/6]: Descargando datos masivos (paginado)...");
+        // --- NUEVA LÓGICA DE CARGUE UNIFICADO ---
+        console.log("DASHBOARD [3/6]: Cargando historial unificado...");
         let allRankData: any[] = [];
         let from = 0;
         let to = 999;
         let hasMore = true;
 
-        while (hasMore && allRankData.length < 5000) { // Límite de seguridad
+        while (hasMore && allRankData.length < 25000) {
           const { data, error } = await supabase
             .from('rendimiento')
             .select('aciertos_principales, acierto_superbalota, created_at, juegos(estrategia, fecha_sorteo, num1, num2, num3, num4, num5, num6)')
             .order('created_at', { ascending: false })
+            .order('id', { ascending: false }) // Orden estable para evitar duplicados/omisiones en paginación
             .range(from, to);
 
           if (error) {
-             console.error("Error en paginación:", error);
+             console.error("Error en cargue unificado:", error);
              break;
           }
           if (data && data.length > 0) {
             allRankData = [...allRankData, ...data];
-            if (data.length < 1000) hasMore = false;
             from += 1000;
             to += 1000;
+            if (data.length < 1000) hasMore = false;
           } else {
-            hasMore = false;
+             hasMore = false;
           }
         }
-             const rankData = allRankData;
-        if (rankData && rankData.length > 0) {
-          // Filtrado de las tres estrategias clave
-          const realHits = rankData.filter((item: any) => {
-            const j = Array.isArray(item.juegos) ? item.juegos[0] : item.juegos;
-            return j?.estrategia?.toLowerCase() === 'real';
-          });
-          const unicaHits = rankData.filter((item: any) => {
-            const j = Array.isArray(item.juegos) ? item.juegos[0] : item.juegos;
-            const est = j?.estrategia?.toLowerCase() || '';
-            return est === 'unica' || est === 'única';
-          });
-          const aleatoriaHits = rankData.filter((item: any) => {
-            const j = Array.isArray(item.juegos) ? item.juegos[0] : item.juegos;
-            return j?.estrategia?.toLowerCase() === 'aleatoria';
-          });
-          console.log(`DASHBOARD: Encontrados ${realHits.length} Real, ${unicaHits.length} Única, ${aleatoriaHits.length} Aleatoria.`);
+        console.log(`DASHBOARD: Historial unificado cargado con ${allRankData.length} registros.`);
+        const rankData = allRankData;
 
-          // Distribuciones y conteos de Superbalota
-          const distR = [0,0,0,0,0,0]; let sbR = 0;
-          realHits.forEach((h: any) => { if(h.aciertos_principales < 6) distR[h.aciertos_principales]++; if(h.acierto_superbalota) sbR++; });
-          
-          const distU = [0,0,0,0,0,0]; let sbU = 0;
-          unicaHits.forEach((h: any) => { if(h.aciertos_principales < 6) distU[h.aciertos_principales]++; if(h.acierto_superbalota) sbU++; });
-          
-          const distA = [0,0,0,0,0,0]; let sbA = 0;
-          aleatoriaHits.forEach((h: any) => { if(h.aciertos_principales < 6) distA[h.aciertos_principales]++; if(h.acierto_superbalota) sbA++; });
+        // 4. Calcular Estadísticas Globales del set unificado
+        if (rankData.length > 0) {
+           const stats: any = {};
+           rankData.forEach((item: any) => {
+              const j = Array.isArray(item.juegos) ? item.juegos[0] : item.juegos;
+              const est = (j?.estrategia || '').toLowerCase().trim();
+              if (est) {
+                 if (!stats[est]) stats[est] = [];
+                 stats[est].push(item.aciertos_principales);
+              }
+           });
+           
+           let best = 'Caliente';
+           let maxAvg = -1;
+           Object.entries(stats).forEach(([name, values]: [string, any]) => {
+              const avg = values.reduce((a: number, b: number) => a + b, 0) / values.length;
+              if (avg > maxAvg) {
+                 maxAvg = avg;
+                 best = name.charAt(0).toUpperCase() + name.slice(1);
+              }
+           });
+           setBestStrategy(best);
+        }
+        
+        // Filtrado de las tres estrategias clave (Scope Global en fetchData)
+        const realHits = rankData.filter((item: any) => {
+          const j = Array.isArray(item.juegos) ? item.juegos[0] : item.juegos;
+          return j?.estrategia?.toLowerCase() === 'real';
+        });
+        const unicaHits = rankData.filter((item: any) => {
+          const j = Array.isArray(item.juegos) ? item.juegos[0] : item.juegos;
+          const est = j?.estrategia?.toLowerCase() || '';
+          return est === 'unica' || est === 'única';
+        });
+        const aleatoriaHits = rankData.filter((item: any) => {
+          const j = Array.isArray(item.juegos) ? item.juegos[0] : item.juegos;
+          const est = (j?.estrategia || '').toLowerCase().trim();
+          // Filtro flexible: Incluye cualquier variante que contenga 'aleatoria' o 'azar'
+          return est.includes('aleatoria') || est.includes('azar');
+        });
+        
+        // --- LOG DE SEGURIDAD PARA CONSOLA ---
+        console.log(`DASHBOARD: Filtro aplicado. Total Aleatoria: ${aleatoriaHits.length} (de ${rankData.length} totales)`);
+
+        // --- CÁLCULO DE MÉTRICAS REACTIVAS (ÚLTIMOS 24 SORTEOS / ~2 MESES) ---
+        // Esta función agrupa por fecha para que la ventana sea de "días reales" 
+        // (especialmente importante para Azar que tiene 30 tarjetas por día)
+        // --- CÁLCULO DE MÉTRICAS REACTIVAS (ÚLTIMOS 24 SORTEOS / ~2 MESES) ---
+        const getWindowsStats = (hitsArray: any[], windowSize: number = 24) => {
+           const byDate: Record<string, any[]> = {};
+           hitsArray.forEach(h => {
+             const j = Array.isArray(h.juegos) ? h.juegos[0] : h.juegos;
+             const f = j?.fecha_sorteo || 'no-date';
+             if (!byDate[f]) byDate[f] = [];
+             byDate[f].push(h);
+           });
+           
+           const sortedDates = Object.keys(byDate).sort((a, b) => b.localeCompare(a)).slice(0, windowSize);
+           const subset: any[] = [];
+           sortedDates.forEach(d => subset.push(...byDate[d]));
+           
+           let totalScore = 0;
+           let totalSB = 0;
+           const dist = [0,0,0,0,0,0];
+           
+           subset.forEach(h => {
+              const s = (h.aciertos_principales || 0) + (h.acierto_superbalota ? 1 : 0);
+              totalScore += s;
+              if (h.acierto_superbalota) totalSB++;
+              if (h.aciertos_principales < 6) dist[h.aciertos_principales]++;
+           });
+           
+           return {
+              avg: subset.length > 0 ? totalScore / subset.length : 0,
+              sbCount: totalSB,
+              sbAvg: subset.length > 0 ? totalSB / subset.length : 0,
+              dist: dist,
+              count: subset.length
+           };
+        };
+
+        const winReal = getWindowsStats(realHits, 24);
+        const winUnica = getWindowsStats(unicaHits, 24);
+        const winAlea = getWindowsStats(aleatoriaHits, 24); 
+        
+        console.log(`DASHBOARD [PRECISIÓN 24 SORT]: Real: ${winReal.avg.toFixed(2)}, Azar: ${winAlea.avg.toFixed(3)}`);
+
+          // --- PRIORIZACIÓN DE JUEGO REAL PARA LA TARJETA DE RESULTADOS ---
+          // 1. Intentamos vincular exacto por fecha del último ganador
+          let realAssigned = false;
+          if (latestWinner) {
+            const exactReal = realHits.find((h: any) => {
+              const j = Array.isArray(h.juegos) ? h.juegos[0] : h.juegos;
+              return j?.fecha_sorteo === latestWinner.fecha;
+            });
+
+            if (exactReal) {
+              const j = Array.isArray(exactReal.juegos) ? exactReal.juegos[0] : exactReal.juegos;
+              setRealStrategyEntry({ ...exactReal, juegos: j });
+              realAssigned = true; 
+              console.log("DASHBOARD: Juego Real vinculado por FECHA:", j.fecha_sorteo);
+            }
+          }
+
+          // 2. Si no hay hit exacto en rendimiento, buscamos en la tabla de juegos (por si no se ha calificado)
+          if (!realAssigned && latestWinner) {
+             // Buscamos el juego real sin importar el 'tipo' (Baloto/Revancha) para evitar desajustes
+             const { data: realJuegoData, error: realJuegoError } = await supabase
+               .from('juegos')
+               .select('*')
+               .ilike('estrategia', 'real')
+               .eq('fecha_sorteo', latestWinner.fecha)
+               .order('id', { ascending: false }) // En caso de que existan varios, traer el más reciente
+               .limit(1);
+
+             if (realJuegoData && realJuegoData.length > 0) {
+               const j = realJuegoData[0];
+               const winNums = [latestWinner.num1, latestWinner.num2, latestWinner.num3, latestWinner.num4, latestWinner.num5];
+               const playNums = [j.num1, j.num2, j.num3, j.num4, j.num5];
+               const matching = playNums.filter(n => winNums.includes(n)).length;
+               const sbMatch = j.num6 === latestWinner.num6;
+               
+               setRealStrategyEntry({
+                 aciertos_principales: matching,
+                 acierto_superbalota: sbMatch,
+                 juegos: j
+               });
+               realAssigned = true;
+               console.log(`DASHBOARD: [SUCCESS] Juego Real de la fecha ${latestWinner.fecha} encontrado ID:${j.id}`);
+             } else {
+               console.log(`DASHBOARD: [WARNING] No se encontró juego Real para la fecha ${latestWinner.fecha}. Error:`, realJuegoError);
+             }
+          }
+
+          // 3. Fallback final al último real disponible en el historial
+          if (!realAssigned && realHits.length > 0) {
+            const latestReal = realHits[0];
+            const j = Array.isArray(latestReal.juegos) ? latestReal.juegos[0] : latestReal.juegos;
+            setRealStrategyEntry({ ...latestReal, juegos: j });
+            console.log("DASHBOARD: Fallback a último Real disponible:", j?.fecha_sorteo);
+          }
 
           // Actualizar Estados de Estadísticas (Ahorro unificado 0-6)
+          // LIMITAMOS A LOS ÚLTIMOS 24 JUEGOS para promedios más "frescos" y reactivos (últimos 2 meses)
+          // Actualizar Estados de Estadísticas
+          // 'total' muestra el volumen histórico (31, 24, 610)
+          // 'avg' muestra la precisión de los últimos 2 meses para ver competitividad actual
           setRealStats({
             total: realHits.length,
-            avg: realHits.length > 0 ? (realHits.reduce((a: number, b: any) => a + (b.aciertos_principales + (b.acierto_superbalota ? 1 : 0)), 0) / realHits.length) : 0,
-            sb: sbR, 
-            sbAvg: realHits.length > 0 ? (sbR / realHits.length) : 0
+            avg: winReal.avg,
+            sb: winReal.sbCount, 
+            sbAvg: winReal.sbAvg
           });
           setUnicaStats({
             total: unicaHits.length,
-            avg: unicaHits.length > 0 ? (unicaHits.reduce((a: number, b: any) => a + (b.aciertos_principales + (b.acierto_superbalota ? 1 : 0)), 0) / unicaHits.length) : 0,
-            sb: sbU, 
-            sbAvg: unicaHits.length > 0 ? (sbU / unicaHits.length) : 0
+            avg: winUnica.avg,
+            sb: winUnica.sbCount, 
+            sbAvg: winUnica.sbAvg
           });
           setAleatoriaStats({
             total: aleatoriaHits.length,
-            avg: aleatoriaHits.length > 0 ? (aleatoriaHits.reduce((a: number, b: any) => a + (b.aciertos_principales + (b.acierto_superbalota ? 1 : 0)), 0) / aleatoriaHits.length) : 0,
-            sb: sbA, 
-            sbAvg: aleatoriaHits.length > 0 ? (sbA / aleatoriaHits.length) : 0
+            avg: winAlea.avg,
+            sb: winAlea.sbCount, 
+            sbAvg: winAlea.sbAvg
           });
 
-          // Preparar datos para la gráfica (Porcentajes)
+          // Preparar datos para la gráfica (Distribución ventana 24 juegos)
           const labels = ['0 Ac', '1 Ac', '2 Ac', '3 Ac', '4 Ac', '5 Ac', 'SB'];
-          const totalR = realHits.length || 1;
-          const totalU = unicaHits.length || 1;
-          const totalA = aleatoriaHits.length || 1;
+          const totalR = winReal.count || 1;
+          const totalU = winUnica.count || 1;
+          const totalA = winAlea.count || 1;
 
           const combined = labels.map((label, i) => {
             if (label === 'SB') {
               return { 
                 name: label, 
-                real: (sbR/totalR)*100, realCount: sbR,
-                unica: (sbU/totalU)*100, unicaCount: sbU,
-                aleatoria: (sbA/totalA)*100, aleatoriaCount: sbA
+                real: (winReal.sbCount/totalR)*100, realCount: winReal.sbCount,
+                unica: (winUnica.sbCount/totalU)*100, unicaCount: winUnica.sbCount,
+                aleatoria: (winAlea.sbCount/totalA)*100, aleatoriaCount: winAlea.sbCount
               };
             }
             return {
               name: label,
-              real: (distR[i]/totalR)*100, realCount: distR[i],
-              unica: (distU[i]/totalU)*100, unicaCount: distU[i],
-              aleatoria: (distA[i]/totalA)*100, aleatoriaCount: distA[i]
+              real: (winReal.dist[i]/totalR)*100, realCount: winReal.dist[i],
+              unica: (winUnica.dist[i]/totalU)*100, unicaCount: winUnica.dist[i],
+              aleatoria: (winAlea.dist[i]/totalA)*100, aleatoriaCount: winAlea.dist[i]
             };
           });
           setCompareData(combined);
@@ -457,31 +550,8 @@ export default function Home() {
             .slice(-30);
           
           setCumulativeData(cumulativeTrend);
-        }
 
-        // 5. Último Juego Integrado (Solo Real)
-        console.log("DASHBOARD [5/6]: Buscando juego REAL jugado...");
-        const { data: recentEntries, error: err5 } = await supabase
-          .from('rendimiento')
-          .select(`
-            aciertos_principales,
-            acierto_superbalota,
-            juegos (
-              estrategia, num1, num2, num3, num4, num5, num6, fecha_sorteo
-            )
-          `)
-          .order('created_at', { ascending: false })
-          .limit(50);
-
-        if (err5) console.error("Error Paso 5:", err5);
-        if (recentEntries && recentEntries.length > 0) {
-          const getJuego = (r: any) => Array.isArray(r.juegos) ? r.juegos[0] : r.juegos;
-          const mappedGames = recentEntries.map(g => ({ ...g, juegos: getJuego(g) }));
-          const real = mappedGames.find(g => g.juegos?.estrategia?.toLowerCase() === 'real');
-          if (real) setRealStrategyEntry(real);
-        }
-
-        // 6. Próximos Juegos (Con paginación para superar el límite de 1,000)
+        // 6. Próximos Juegos (Sin usar para totales, solo para visualización)        
         console.log("DASHBOARD [6/6]: Buscando próximos juegos (paginado)...");
         let allFutureGames: any[] = [];
         let f_from = 0;
@@ -514,6 +584,10 @@ export default function Home() {
            const mostRecentDate = latestGames[0].fecha_sorteo;
            const gamesToPlay = latestGames.filter(g => g.fecha_sorteo === mostRecentDate);
            setNextGames(gamesToPlay);
+           
+           // NOTA: Los totales ya fueron asignados correctamente usando 'realHits.length', 
+           // 'unicaHits.length' y 'aleatoriaHits.length' en el bloque de procesamiento de ranking.
+           // No sobrescribimos con cReal/cUnica para no incluir juegos futuros unplayed.
         }
         console.log("DASHBOARD: Carga de juegos exitosa.");
 
@@ -723,10 +797,16 @@ export default function Home() {
           <History size={16} /> HISTÓRICO
         </button>
         <button 
-          onClick={() => setActiveTab('comportamiento')}
-          className={`tab-button ${activeTab === 'comportamiento' ? 'active' : ''}`}
+          onClick={() => setActiveTab('estrategias')}
+          className={`tab-button ${activeTab === 'estrategias' ? 'active' : ''}`}
         >
-          <TrendingUp size={16} /> COMPORTAMIENTO
+          <Trophy size={16} /> ESTRATEGIAS
+        </button>
+        <button 
+          onClick={() => setActiveTab('rendimiento')}
+          className={`tab-button ${activeTab === 'rendimiento' ? 'active' : ''}`}
+        >
+          <BarChart3 size={16} /> RENDIMIENTO
         </button>
         <button 
           onClick={() => setActiveTab('analisis')}
@@ -819,19 +899,7 @@ export default function Home() {
           </div>
           <div className="card-value" style={{ color: '#3b82f6', fontSize: '1.2rem', marginTop: '0.2rem' }}>
             {realStrategyEntry ? (
-              <>
-                {realStrategyEntry.aciertos_principales}
-                <span style={{ 
-                  fontSize: '0.8rem', 
-                  fontWeight: '900',
-                  color: '#f59e0b',
-                  marginLeft: '0.3rem',
-                  display: realStrategyEntry.acierto_superbalota ? 'inline' : 'none',
-                  textShadow: '0 0 10px rgba(245, 158, 11, 0.4)'
-                }}>
-                  + SB
-                </span>
-              </>
+              realStrategyEntry.aciertos_principales + (realStrategyEntry.acierto_superbalota ? 1 : 0)
             ) : '--'}
           </div>
         </article>
@@ -874,17 +942,17 @@ export default function Home() {
         <article className="card animate-in" style={{ padding: '1.5rem', animationDelay: '0.6s' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h2 style={{ fontSize: '1rem', color: 'var(--foreground-muted)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <TrendingUp size={18} /> IA (REAL) VS AZAR (ALEATORIA)
+              <TrendingUp size={18} /> ESTRATEGIA REAL (IA) VS AZAR (ALEATORIA)
             </h2>
             <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <div style={{ width: 10, height: 10, background: 'var(--primary)', borderRadius: '2px' }} /> REAL
+                <div style={{ width: 10, height: 10, background: 'var(--primary)', borderRadius: '2px' }} /> ESTRATEGIA REAL (IA)
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <div style={{ width: 10, height: 10, background: '#f97316', borderRadius: '2px' }} /> ÚNICA
+                <div style={{ width: 10, height: 10, background: '#f97316', borderRadius: '2px' }} /> ESTRATEGIA ÚNICA (PERSISTENCIA)
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <div style={{ width: 10, height: 10, background: '#64748b', borderRadius: '2px' }} /> ALEATORIA
+                <div style={{ width: 10, height: 10, background: '#64748b', borderRadius: '2px' }} /> AZAR (ALEATORIA)
               </div>
             </div>
           </div>
@@ -898,15 +966,16 @@ export default function Home() {
                   contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
                   itemStyle={{ color: '#fff', fontSize: '11px' }}
                   formatter={(value: any, name: any, props: any) => {
-                    const isReal = name === 'Real';
-                    const isUnica = name === 'Única';
+                    const n = (name || '').toString().toUpperCase();
+                    const isReal = n.includes('REAL');
+                    const isUnica = n.includes('ÚNICA') || n.includes('PERSISTENCIA');
                     const count = isReal ? props.payload.realCount : (isUnica ? props.payload.unicaCount : props.payload.aleatoriaCount);
                     return [`${Number(value).toFixed(2)}% (n=${count})`, `Estrategia: ${name}`];
                   }}
                 />
-                <Bar dataKey="real" fill="var(--primary)" radius={[4, 4, 0, 0]} name="Real" />
-                <Bar dataKey="unica" fill="#f97316" radius={[4, 4, 0, 0]} name="Única" />
-                <Bar dataKey="aleatoria" fill="#64748b" radius={[4, 4, 0, 0]} name="Aleatoria" />
+                <Bar dataKey="real" fill="var(--primary)" radius={[4, 4, 0, 0]} name="ESTRATEGIA REAL (IA)" />
+                <Bar dataKey="unica" fill="#f97316" radius={[4, 4, 0, 0]} name="ESTRATEGIA ÚNICA (PERSISTENCIA)" />
+                <Bar dataKey="aleatoria" fill="#64748b" radius={[4, 4, 0, 0]} name="AZAR (ALEATORIA)" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -960,23 +1029,33 @@ export default function Home() {
             </div>
           </article>
 
-          {/* Fila 4: COMPARACIÓN GLOBAL */}
+          {/* Fila 4: COMPARACIÓN GLOBAL (VENTAJA COMPETITIVA) */}
           <article className="card animate-in" style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
              <div className="card-title" style={{ fontSize: '0.7rem', color: '#10b981', marginBottom: '0.5rem' }}>
                <Sparkles size={14} /> VENTAJA COMPETITIVA (IA)
              </div>
              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
-                   <span>vs Azar</span>
-                   <span style={{ fontWeight: 'bold' }}>+{(((realStats.avg / (aleatoriaStats.avg || 1)) - 1) * 100).toFixed(1)}%</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
-                   <span>vs Única</span>
-                   <span style={{ fontWeight: 'bold' }}>+{(((realStats.avg / (unicaStats.avg || 1)) - 1) * 100).toFixed(1)}%</span>
-                </div>
-                <div style={{ height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', marginTop: '0.4rem', overflow: 'hidden' }}>
+                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
+                    <span>vs Azar</span>
+                    <span style={{ 
+                      fontWeight: 'bold', 
+                      color: (realStats.avg >= aleatoriaStats.avg) ? '#10b981' : '#ef4444' 
+                    }}>
+                      {(realStats.avg >= aleatoriaStats.avg ? '+' : '')}{(((realStats.avg / (aleatoriaStats.avg || 1)) - 1) * 100).toFixed(1)}%
+                    </span>
+                 </div>
+                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
+                    <span>vs Única</span>
+                    <span style={{ 
+                      fontWeight: 'bold', 
+                      color: (realStats.avg >= (unicaStats.avg || 1)) ? '#10b981' : '#ef4444' 
+                    }}>
+                      {(realStats.avg >= (unicaStats.avg || 1) ? '+' : '')}{(((realStats.avg / (unicaStats.avg || 1)) - 1) * 100).toFixed(1)}%
+                    </span>
+                 </div>
+                 <div style={{ height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', marginTop: '0.4rem', overflow: 'hidden' }}>
                     <div style={{ width: `${Math.min(100, (realStats.avg/0.5)*100)}%`, height: '100%', background: '#10b981' }} />
-                </div>
+                 </div>
              </div>
           </article>
         </div>
@@ -984,7 +1063,98 @@ export default function Home() {
     </>
   )}
 
-      {activeTab === 'historico' && (
+      {activeTab === 'rendimiento' && (
+        <section className="animate-in" style={{ marginTop: '1.5rem', marginBottom: '3rem', animationDelay: '0.1s', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          
+          {/* Gráfica 1: Área de Probabilidad (1 vs 30) */}
+          <article className="card" style={{ padding: '1.5rem' }}>
+            <div className="card-title" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <TrendingUp size={18} style={{ color: '#3b82f6' }} /> IA REAL VS RANGO DE AZAR (1 VS 30)
+              </div>
+              <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>Franja gris representa el rango (Min-Max) de 30 juegos aleatorios</div>
+            </div>
+            <div style={{ height: '300px', width: '100%', minWidth: 0 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={trendData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="date" stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} />
+                  <YAxis stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} />
+                  <Tooltip 
+                    contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '11px' }}
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                  <Area type="monotone" dataKey="alea_range" name="Rango Azar (Min-Max)" fill="rgba(148, 163, 184, 0.15)" stroke="rgba(148, 163, 184, 0.3)" />
+                  <Line type="monotone" dataKey="alea_avg" name="Promedio Azar" stroke="#64748b" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                  <Line type="monotone" dataKey="real" name="IA Real" stroke="#3b82f6" strokeWidth={4} dot={{ r: 5, fill: '#3b82f6' }} activeDot={{ r: 8 }} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </article>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
+            {/* Gráfica 2: Índice de Superioridad (Percentil) */}
+            <article className="card" style={{ padding: '1.5rem' }}>
+              <div className="card-title" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                 <Target size={18} style={{ color: '#10b981' }} /> ÍNDICE DE SUPERIORIDAD (%)
+              </div>
+              <div style={{ height: '250px', width: '100%', minWidth: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={trendData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                    <defs>
+                      <linearGradient id="colorSup" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                    <XAxis dataKey="date" stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} />
+                    <YAxis domain={[0, 100]} stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}%`} />
+                    <Tooltip 
+                      contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '11px' }}
+                      formatter={(v: any) => [`${Number(v).toFixed(1)}%`, 'Superior a']}
+                    />
+                    <Area type="monotone" dataKey="superiority" name="Superioridad vs Azar" stroke="#10b981" fillOpacity={1} fill="url(#colorSup)" strokeWidth={3} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <p style={{ fontSize: '0.65rem', opacity: 0.5, marginTop: '1rem', textAlign: 'center' }}>
+                Indica a qué porcentaje de los 30 juegos aleatorios superó la IA en cada fecha.
+              </p>
+            </article>
+
+            {/* Gráfica 3: Eficiencia de la IA (Factor Multiplicador) */}
+            <article className="card" style={{ padding: '1.5rem' }}>
+              <div className="card-title" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                 <Activity size={18} style={{ color: '#fbbf24' }} /> FACTOR DE EFICIENCIA IA
+              </div>
+              <div style={{ height: '250px', width: '100%', minWidth: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={trendData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                    <XAxis dataKey="date" stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} />
+                    <YAxis stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}x`} />
+                    <Tooltip 
+                      contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '11px' }}
+                      formatter={(v: any) => [`${Number(v).toFixed(2)}x`, 'Eficiencia']}
+                    />
+                    <Bar dataKey="efficiency" name="Eficiencia x Tirada" fill="#fbbf24" radius={[4, 4, 0, 0]}>
+                      {trendData.map((_entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={_entry.efficiency >= 1 ? '#fbbf24' : '#ef4444'} opacity={0.8} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <p style={{ fontSize: '0.65rem', opacity: 0.5, marginTop: '1rem', textAlign: 'center' }}>
+                Muestra cuántas veces mejor rindió la IA comparada con el promedio esperado del azar.
+              </p>
+            </article>
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'estrategias' && (
         <>
           {/* Ranking Global de Estrategias (Leaderboard) */}
           <section className="animate-in" style={{ marginTop: '0.5rem', animationDelay: '0.4s' }}>
@@ -1027,16 +1197,20 @@ export default function Home() {
                 <YAxis domain={['auto', 'auto']} stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} />
                 <Tooltip 
                   contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '11px' }}
-                  formatter={(value: any, name: any) => [
-                    `${Number(value).toFixed(4)} Ac`, 
-                    `Estr: ${(name || '').toString().charAt(0).toUpperCase() + (name || '').toString().slice(1)}`
-                  ]}
+                  formatter={(value: any, name: any) => {
+                    const n = (name || '').toString().toUpperCase();
+                    let cleanName = name;
+                    if (n.includes('REAL')) cleanName = 'ESTRATEGIA REAL (IA)';
+                    if (n.includes('ÚNICA') || n.includes('PERSISTENCIA')) cleanName = 'ESTRATEGIA ÚNICA (PERSISTENCIA)';
+                    if (n.includes('AZAR') || n.includes('ALEATORIA')) cleanName = 'AZAR (ALEATORIA)';
+                    return [`${Number(value).toFixed(4)} Ac`, `Estr: ${cleanName}`];
+                  }}
                 />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-                <Line type="monotone" dataKey="real" name="IA Real" stroke="#3b82f6" strokeWidth={3} dot={false} connectNulls />
+                <Line type="monotone" dataKey="real" name="ESTRATEGIA REAL (IA)" stroke="#3b82f6" strokeWidth={3} dot={false} connectNulls />
                 <Line type="monotone" dataKey="elite" name="Elite" stroke="#fbbf24" strokeWidth={2} dot={false} connectNulls />
-                <Line type="monotone" dataKey="aleatoria" name="Azar" stroke="#64748b" strokeWidth={2} strokeDasharray="5 5" dot={false} connectNulls />
-                <Line type="monotone" dataKey="unica" name="Única" stroke="#f97316" strokeWidth={2} dot={false} connectNulls />
+                <Line type="monotone" dataKey="aleatoria" name="AZAR (ALEATORIA)" stroke="#64748b" strokeWidth={2} strokeDasharray="5 5" dot={false} connectNulls />
+                <Line type="monotone" dataKey="unica" name="ESTRATEGIA ÚNICA (PERSISTENCIA)" stroke="#f97316" strokeWidth={2} dot={false} connectNulls />
                 <Line type="monotone" dataKey="balanceada" name="Balanceada" stroke="#10b981" strokeWidth={2} dot={false} connectNulls />
                 <Line type="monotone" dataKey="caliente" name="Caliente" stroke="#ef4444" strokeWidth={1} dot={false} connectNulls opacity={0.6} />
                 <Line type="monotone" dataKey="mixta" name="Mixta" stroke="#8b5cf6" strokeWidth={1} dot={false} connectNulls opacity={0.6} />
@@ -1062,16 +1236,17 @@ export default function Home() {
                 return labels.map((label, i) => {
                   const row: any = { name: label };
                   targets.forEach(target => {
-                    // Accedemos a los datos procesados previamente o recalculamos rápido
                     const filterHits = (strategyRanking.find(s => s.name === target)?.rawHits || []);
                     const total = filterHits.length || 1;
+                    let count = 0;
                     if (label === 'SB') {
-                      const count = filterHits.filter((h: any) => h.acierto_superbalota).length;
-                      row[target.toLowerCase()] = (count / total) * 100;
+                      count = filterHits.filter((h: any) => h.acierto_superbalota).length;
                     } else {
-                      const count = filterHits.filter((h: any) => h.aciertos_principales === i).length;
-                      row[target.toLowerCase()] = (count / total) * 100;
+                      count = filterHits.filter((h: any) => h.aciertos_principales === i).length;
                     }
+                    const key = target.toLowerCase();
+                    row[key] = (count / total) * 100;
+                    row[`${key}Count`] = count; // Guardamos el conteo crudo
                   });
                   return row;
                 });
@@ -1082,10 +1257,13 @@ export default function Home() {
                 <Tooltip 
                   cursor={{ fill: 'rgba(255,255,255,0.02)' }}
                   contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '11px' }}
-                  formatter={(value: any, name: any) => [
-                    `${Number(value).toFixed(2)}%`, 
-                    `Estrategia: ${name || 'N/A'}`
-                  ]}
+                  formatter={(value: any, name: any, props: any) => {
+                    const count = props.payload[`${props.dataKey}Count`];
+                    return [
+                      `${Number(value).toFixed(2)}% (${count} veces)`, 
+                      `Estrategia: ${name}`
+                    ];
+                  }}
                 />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
                 <Bar dataKey="caliente" name="Caliente" fill="#ef4444" radius={[2, 2, 0, 0]} />
@@ -1097,95 +1275,6 @@ export default function Home() {
             </ResponsiveContainer>
           </div>
         </article>
-      </section>
-      {/* SECCIÓN DE GRÁFICAS AVANZADAS DE RENDIMIENTO */}
-      <section className="animate-in" style={{ marginTop: '1.5rem', marginBottom: '3rem', animationDelay: '0.6s', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        
-        {/* Gráfica 1: Área de Probabilidad (1 vs 300) */}
-        <article className="card" style={{ padding: '1.5rem' }}>
-          <div className="card-title" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <TrendingUp size={18} style={{ color: '#3b82f6' }} /> IA REAL VS RANGO DE AZAR (1 VS 300)
-            </div>
-            <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>Franja gris representa el rango (Min-Max) de 300 juegos aleatorios</div>
-          </div>
-          <div style={{ height: '300px', width: '100%', minWidth: 0 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={trendData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="date" stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} />
-                <Tooltip 
-                  contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '11px' }}
-                />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                <Area type="monotone" dataKey="alea_range" name="Rango Azar (Min-Max)" fill="rgba(255,255,255,0.05)" stroke="transparent" />
-                <Line type="monotone" dataKey="alea_avg" name="Promedio Azar" stroke="#64748b" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-                <Line type="monotone" dataKey="real" name="IA Real" stroke="#3b82f6" strokeWidth={4} dot={{ r: 5, fill: '#3b82f6' }} activeDot={{ r: 8 }} />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
-        </article>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
-          {/* Gráfica 2: Índice de Superioridad (Percentil) */}
-          <article className="card" style={{ padding: '1.5rem' }}>
-            <div className="card-title" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-               <Target size={18} style={{ color: '#10b981' }} /> ÍNDICE DE SUPERIORIDAD (%)
-            </div>
-            <div style={{ height: '250px', width: '100%', minWidth: 0 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trendData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
-                  <defs>
-                    <linearGradient id="colorSup" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="date" stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} />
-                  <YAxis domain={[0, 100]} stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}%`} />
-                  <Tooltip 
-                    contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '11px' }}
-                    formatter={(v: any) => [`${Number(v).toFixed(1)}%`, 'Superior a']}
-                  />
-                  <Area type="monotone" dataKey="superiority" name="Superioridad vs Azar" stroke="#10b981" fillOpacity={1} fill="url(#colorSup)" strokeWidth={3} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-            <p style={{ fontSize: '0.65rem', opacity: 0.5, marginTop: '1rem', textAlign: 'center' }}>
-              Indica a qué porcentaje de los 300 juegos aleatorios superó la IA en cada fecha.
-            </p>
-          </article>
-
-          {/* Gráfica 3: Eficiencia de la IA (Factor Multiplicador) */}
-          <article className="card" style={{ padding: '1.5rem' }}>
-            <div className="card-title" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-               <Activity size={18} style={{ color: '#fbbf24' }} /> FACTOR DE EFICIENCIA IA
-            </div>
-            <div style={{ height: '250px', width: '100%', minWidth: 0 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={trendData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="date" stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} />
-                  <YAxis stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}x`} />
-                  <Tooltip 
-                    contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '11px' }}
-                    formatter={(v: any) => [`${Number(v).toFixed(2)}x`, 'Eficiencia']}
-                  />
-                  <Bar dataKey="efficiency" name="Eficiencia x Tirada" fill="#fbbf24" radius={[4, 4, 0, 0]}>
-                    {trendData.map((_entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={_entry.efficiency >= 1 ? '#fbbf24' : '#ef4444'} opacity={0.8} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <p style={{ fontSize: '0.65rem', opacity: 0.5, marginTop: '1rem', textAlign: 'center' }}>
-              Muestra cuántas veces mejor rindió la IA comparada con el promedio esperado del azar.
-            </p>
-          </article>
-        </div>
       </section>
         </>
       )}
@@ -1433,7 +1522,7 @@ export default function Home() {
         </>
       )}
 
-{activeTab === 'comportamiento' && (
+{activeTab === 'historico' && (
   <>
     {/* TABLA DE ANÁLISIS DE FRECUENCIA Y RECENCIA (1-43) */}
     <section className="animate-in" style={{ marginTop: '0.5rem', marginBottom: '2.5rem', animationDelay: '0.1s' }}>

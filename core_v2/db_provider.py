@@ -92,6 +92,49 @@ class DBProvider:
             print(f"Error al obtener ranking: {e}")
             return ["caliente", "fria", "mixta", "balanceada", "unica", "real"]
 
+    def get_superballot_ranking(self):
+        """
+        Devuelve una lista de estrategias ordenadas por mejor rendimiento 
+        específicamente en aciertos de Superbalota.
+        """
+        try:
+            response = self.supabase.table("rendimiento")\
+                .select("acierto_superbalota, juegos(estrategia)")\
+                .order("created_at", desc=True)\
+                .limit(120)\
+                .execute()
+            
+            data = response.data
+            all_strats = ["caliente", "fria", "mixta", "balanceada", "unica", "elite"]
+            
+            if not data:
+                return all_strats
+
+            stats = {}
+            for item in data:
+                if not item.get('juegos'): continue
+                est = item['juegos']['estrategia']
+                if est == 'real' or est == 'aleatoria': continue # Evitar recursión o azar puro
+                
+                hit = 1 if item['acierto_superbalota'] else 0
+                if est not in stats:
+                    stats[est] = []
+                stats[est].append(hit)
+            
+            # Calcular promedios de acierto de SB
+            averages = {k: sum(v)/len(v) for k, v in stats.items()}
+            # Ordenar por mejor promedio de SB
+            ranked = sorted(averages, key=averages.get, reverse=True)
+            
+            for s in all_strats:
+                if s not in ranked:
+                    ranked.append(s)
+                    
+            return ranked
+        except Exception as e:
+            print(f"Error al obtener ranking de SB: {e}")
+            return ["caliente", "fria", "mixta", "balanceada", "elite"]
+
     def get_hot_numbers(self, days=90):
         """Obtiene los números más frecuentes en los últimos X días"""
         # Nota: En una implementación ideal, esto sería un RPC en Postgres para eficiencia

@@ -1,0 +1,2 @@
+REAL games: juegos=32, rendimiento=29
+UNICA games: juegos=25, rendimiento=22

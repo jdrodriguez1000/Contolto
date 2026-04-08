@@ -1,0 +1,7 @@
+Total REAL games in 'juegos': 32
+Total EVALUATED 'real' games in 'rendimiento': 29
+
+Missing games (in juegos but not evaluated in rendimiento):
+- ID: 665, Fecha: 2026-03-27
+- ID: 28998, Fecha: 2026-04-06
+- ID: 23592, Fecha: 2026-04-03

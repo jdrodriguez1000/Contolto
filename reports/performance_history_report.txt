@@ -3,33 +3,24 @@
 ==========================================================================================
 FECHA        | ESTRATEGIA   | TOTAL JUEGOS   | PROM. ACIERTOS  | SB GANADAS
 --------------------------------------------------------------------------------
-2026-04-01   | UNICA        | 1              | 0.00            | 0
-2026-04-01   | REAL         | 1              | 0.00            | 1
-2026-04-01   | MIXTA        | 1              | 2.00            | 1
-2026-04-01   | FRIA         | 1              | 1.00            | 0
-2026-04-01   | ELITE        | 1              | 0.00            | 1
-2026-04-01   | CALIENTE     | 1              | 0.00            | 0
-2026-04-01   | BALANCEADA   | 1              | 0.00            | 0
-2026-04-01   | ALEATORIA    | 1              | 0.00            | 0
-2026-03-30   | UNICA        | 1              | 0.00            | 0
-2026-03-30   | REAL         | 1              | 0.00            | 0
-2026-03-30   | MIXTA        | 1              | 0.00            | 0
-2026-03-30   | FRIA         | 1              | 0.00            | 1
-2026-03-30   | ELITE        | 1              | 1.00            | 0
-2026-03-30   | CALIENTE     | 1              | 1.00            | 0
-2026-03-30   | BALANCEADA   | 1              | 2.00            | 0
+2026-04-06   | REAL         | 1              | 1.00            | 0
+2026-04-06   | MIXTA        | 218            | 0.88            | 0
+2026-04-06   | FRIA         | 300            | 0.62            | 0
+2026-04-06   | CALIENTE     | 300            | 1.00            | 0
+2026-04-04   | REAL         | 1              | 1.00            | 0
+2026-04-04   | CALIENTE     | 180            | 0.55            | 0
 
 ==========================================================================================
 [ RANKING DE ESTRATEGIAS - ALL TIME ]
 ------------------------------------------------------------------------------------------
-CALIENTE     | Promedio: 0.82 | S.B. Ganadas: 4 | Total Juegos: 39
-MIXTA        | Promedio: 0.60 | S.B. Ganadas: 4 | Total Juegos: 40
-ALEATORIA    | Promedio: 0.60 | S.B. Ganadas: 2 | Total Juegos: 10
-REAL         | Promedio: 0.55 | S.B. Ganadas: 3 | Total Juegos: 29
-UNICA        | Promedio: 0.55 | S.B. Ganadas: 1 | Total Juegos: 22
-FRIA         | Promedio: 0.54 | S.B. Ganadas: 4 | Total Juegos: 39
-BALANCEADA   | Promedio: 0.49 | S.B. Ganadas: 6 | Total Juegos: 39
-ELITE        | Promedio: 0.30 | S.B. Ganadas: 2 | Total Juegos: 10
+CALIENTE     | Promedio: 0.77 | S.B. Ganadas: 4 | Total Juegos: 639
+REAL         | Promedio: 0.68 | S.B. Ganadas: 3 | Total Juegos: 31
+ALEATORIA    | Promedio: 0.68 | S.B. Ganadas: 51 | Total Juegos: 610
+MIXTA        | Promedio: 0.65 | S.B. Ganadas: 4 | Total Juegos: 640
+ELITE        | Promedio: 0.62 | S.B. Ganadas: 2 | Total Juegos: 610
+UNICA        | Promedio: 0.58 | S.B. Ganadas: 1 | Total Juegos: 24
+FRIA         | Promedio: 0.51 | S.B. Ganadas: 4 | Total Juegos: 639
+BALANCEADA   | Promedio: 0.47 | S.B. Ganadas: 21 | Total Juegos: 639
 ==========================================================================================
-Reporte generado el: 2026-04-03 10:00:37
+Reporte generado el: 2026-04-07 12:05:30
 Nota: El reporte muestra cuales numeros especificos muerden la suerte.

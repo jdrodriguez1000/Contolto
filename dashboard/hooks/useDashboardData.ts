@@ -273,8 +273,8 @@ export function useDashboardData() {
         if (ranked.length > 0) {
           setBestStrategy(ranked[0].name);
           
-          const labelsDist = ['0 Ac', '1 Ac', '2 Ac', '3 Ac', '4 Ac', '5 Ac'];
-          const getDist = (strategyName: string) => {
+          const labelsDist = ['0 Ac', '1 Ac', '2 Ac', '3 Ac', '4 Ac', '5 Ac', 'SB'];
+          const getDistWithCounts = (strategyName: string) => {
             const hits = rankData.filter((item: any) => {
               const j = Array.isArray(item.juegos) ? item.juegos[0] : item.juegos;
               let est = (j?.estrategia || '').toLowerCase().trim();
@@ -282,29 +282,40 @@ export function useDashboardData() {
               if (strategyName === 'azar') return est.includes('aleatoria') || est.includes('azar');
               return est === strategyName;
             });
-            const counts = [0,0,0,0,0,0];
+            const counts = [0,0,0,0,0,0,0];
             hits.forEach(h => {
-              if (h.aciertos_principales >= 0 && h.aciertos_principales <= 5) {
-                counts[h.aciertos_principales]++;
-              }
+              if (h.aciertos_principales >= 0 && h.aciertos_principales <= 5) counts[h.aciertos_principales]++;
+              if (h.acierto_superbalota) counts[6]++;
             });
             const total = hits.length || 1;
-            return counts.map(c => (c / total) * 100);
+            return {
+              avgs: counts.map(c => (c / total) * 100),
+              counts: counts
+            };
           };
 
-          const balanceadaD = getDist('balanceada');
-          const calienteD = getDist('caliente');
-          const eliteD = getDist('elite');
-          const friaD = getDist('fria');
-          const mixtaD = getDist('mixta');
+          const balanceada = getDistWithCounts('balanceada');
+          const caliente = getDistWithCounts('caliente');
+          const elite = getDistWithCounts('elite');
+          const fria = getDistWithCounts('fria');
+          const mixta = getDistWithCounts('mixta');
+          const afinidad = getDistWithCounts('afinidad');
 
           const engineDistData = labelsDist.map((label, i) => ({
             aciertos: label,
-            Balanceada: balanceadaD[i],
-            Caliente: calienteD[i],
-            Elite: eliteD[i],
-            Fria: friaD[i],
-            Mixta: mixtaD[i]
+            Balanceada: balanceada.avgs[i],
+            BalanceadaCount: balanceada.counts[i],
+            Caliente: caliente.avgs[i],
+            CalienteCount: caliente.counts[i],
+            Elite: elite.avgs[i],
+            EliteCount: elite.counts[i],
+            Fria: fria.avgs[i],
+            FriaCount: fria.counts[i],
+            Mixta: mixta.avgs[i],
+            MixtaCount: mixta.counts[i],
+            Afinidad: afinidad.avgs[i],
+            AfinidadCount: afinidad.counts[i],
+            isSB: label === 'SB'
           }));
           setEngineDistribution(engineDistData);
         }

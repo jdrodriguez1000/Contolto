@@ -63,22 +63,28 @@ class DBProvider:
             
             data = response.data
             # Lista base de estrategias por defecto
-            all_strats = ["caliente", "fria", "mixta", "balanceada", "unica", "real"]
+            all_strats = ["caliente", "fria", "mixta", "balanceada", "unica", "real", "afinidad", "elite", "aleatoria"]
             
             if not data:
                 return all_strats
 
             stats = {}
             for item in data:
-                if not item.get('juegos'): continue
-                est = item['juegos']['estrategia']
-                aciertos = item['aciertos_principales']
+                juego = item.get('juegos')
+                if not juego or not isinstance(juego, dict): continue
+                
+                est = juego.get('estrategia')
+                if not est: continue
+                
+                aciertos = item.get('aciertos_principales')
+                if aciertos is None: continue
+                
                 if est not in stats:
                     stats[est] = []
-                stats[est].append(aciertos)
+                stats[est].append(float(aciertos))
             
-            # Calcular promedios
-            averages = {k: sum(v)/len(v) for k, v in stats.items()}
+            # Calcular promedios de forma segura
+            averages = {k: sum(v)/len(v) if len(v) > 0 else 0 for k, v in stats.items()}
             # Ordenar por promedio descendente
             ranked = sorted(averages, key=averages.get, reverse=True)
             
@@ -105,7 +111,7 @@ class DBProvider:
                 .execute()
             
             data = response.data
-            all_strats = ["caliente", "fria", "mixta", "balanceada", "unica", "elite"]
+            all_strats = ["caliente", "fria", "mixta", "balanceada", "unica", "elite", "afinidad"]
             
             if not data:
                 return all_strats
@@ -340,6 +346,108 @@ class DBProvider:
             .limit(limit)\
             .execute()
         return [set([r[f'num{j}'] for j in range(1, 6)]) for r in res.data]
+
+    def get_full_historial_data(self, limit=400):
+        """Descarga el historial completo para procesamiento local (eficiencia)"""
+        try:
+            res = self.supabase.table("historial")\
+                .select("num1, num2, num3, num4, num5, num6")\
+                .eq("tipo", "Baloto")\
+                .order("fecha", desc=True)\
+                .limit(limit)\
+                .execute()
+            return res.data
+        except Exception as e:
+            print(f"Error al descargar historial completo: {e}")
+            return []
+
+    def get_affinity_next_number(self, current_nums, history_data=None):
+        """
+        Busca el número más afín. Si se pasa history_data (lista de dicts), 
+        se procesa localmente para evitar consultas de red.
+        """
+        try:
+            from collections import Counter
+            import random
+            
+            # Si no hay previo, devolver uno caliente
+            if not current_nums:
+                hot = self.get_hot_numbers()
+                return random.choice(hot) if hot else random.randint(1, 43)
+
+            # Si no hay datos previos, cargarlos ahora (fallback)
+            if history_data is None:
+                res = self.supabase.table("historial")\
+                    .select("num1, num2, num3, num4, num5")\
+                    .eq("tipo", "Baloto")\
+                    .order("fecha", desc=True)\
+                    .limit(400)\
+                    .execute()
+                history_sets = [set([r[f'num{j}'] for j in range(1, 6)]) for r in res.data]
+            else:
+                # Filtrar solo los números principales del data pre-cargado
+                history_sets = [set([r[f'num{j}'] for j in range(1, 6)]) for r in history_data]
+            
+            # 1. Intentar coincidencia con el grupo completo
+            candidates = Counter()
+            match_found = False
+            
+            for draw in history_sets:
+                if set(current_nums).issubset(draw):
+                    for n in draw:
+                        if n not in current_nums:
+                            candidates[n] += 1
+                            match_found = True
+            
+            if match_found:
+                return candidates.most_common(1)[0][0]
+            
+            # 2. Fallback: Buscar afinidad individual
+            fallback_candidates = Counter()
+            for draw in history_sets:
+                intersection = set(current_nums).intersection(draw)
+                if intersection:
+                    weight = len(intersection)
+                    for n in draw:
+                        if n not in current_nums:
+                            fallback_candidates[n] += weight
+            
+            if fallback_candidates:
+                return fallback_candidates.most_common(1)[0][0]
+            
+            return random.randint(1, 43)
+            
+        except Exception as e:
+            print(f"Error en afinidad: {e}")
+            return random.randint(1, 43)
+
+    def get_superballot_affinity(self, quinteto, history_data=None):
+        """Busca qué Superbalota ha salido más veces con este quinteto"""
+        try:
+            if history_data is None:
+                res = self.supabase.table("historial")\
+                    .select("num1, num2, num3, num4, num5, num6")\
+                    .eq("tipo", "Baloto")\
+                    .order("fecha", desc=True)\
+                    .limit(300)\
+                    .execute()
+                data = res.data
+            else:
+                data = history_data
+            
+            from collections import Counter
+            sb_candidates = Counter()
+            quinteto_set = set(quinteto)
+            
+            for r in data:
+                draw_set = set([r[f'num{j}'] for j in range(1, 6)])
+                intersection_size = len(quinteto_set.intersection(draw_set))
+                if intersection_size >= 2: 
+                    sb_candidates[r['num6']] += intersection_size
+            
+            return sb_candidates.most_common(1)[0][0] if sb_candidates else None
+        except Exception:
+            return None
 
 if __name__ == "__main__":
     db = DBProvider()

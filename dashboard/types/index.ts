@@ -26,5 +26,5 @@ export interface RendimientoDetallado {
   winner?: Sorteo;
 }
 
-export type TabType = 'resultados' | 'historico' | 'estrategias' | 'rendimiento' | 'analisis';
+export type TabType = 'resultados' | 'historico' | 'estrategias' | 'rendimiento' | 'analisis' | 'afinidad';
 

@@ -36,8 +36,9 @@ class GameGenerator:
             self.last_won_nums = set()
             self.last_won_sb = None
         
-        # NUEVO: Cargar estadísticas de Superbalota una sola vez para evitar 1,800 consultas
+        # NUEVO: Cargar estadísticas de Superbalota y Historial para Afinidad
         self.sb_stats = self.db.get_superballot_stats()
+        self.full_history = self.db.get_full_historial_data(limit=500)
 
     def get_next_draw_date(self):
         now = datetime.now()
@@ -214,12 +215,43 @@ class GameGenerator:
         # Fallback si el pool elite es muy restrictivo
         return self.generate_caliente()
 
+    def generate_afinidad(self, seed=None):
+        """
+        NUEVA ESTRATEGIA: Construcción secuencial por afinidad histórica (Máximo Enfoque).
+        """
+        for _ in range(300): # Intentos para asegurar que pase filtros
+            # 1. Obtiene la semilla proporcionada o una aleatoria del pool caliente
+            first_num = seed if seed else random.choice(self.hot_pool)
+            nums = [first_num]
+            
+            # 2-5. Construye el resto del quinteto por ruta de máxima afinidad
+            while len(nums) < 5:
+                next_n = self.db.get_affinity_next_number(nums, history_data=self.full_history)
+                if next_n in nums: # Fallback si hay colisión
+                    remaining = sorted(list(set(range(1, 44)) - set(nums)))
+                    next_n = remaining[0] 
+                nums.append(next_n)
+            
+            if self._is_valid_play(nums):
+                # 6. Definir Super Balota por máxima afinidad al quinteto
+                sb_afin = self.db.get_superballot_affinity(nums, history_data=self.full_history)
+                if not sb_afin:
+                    sb_afin = self.select_superballot_real()
+                
+                return sorted(nums), sb_afin
+        
+        # Fallback extremo
+        return self.generate_caliente(), self.select_superballot_real()
+
     def _get_nums_from_strat(self, strat_name):
         if strat_name == "caliente": return self.generate_caliente()
         if strat_name == "fria": return self.generate_fria()
         if strat_name == "balanceada": return self.generate_balanceada()
         if strat_name == "mixta": return self.generate_mixta()
         if strat_name == "elite": return self.generate_elite()
+        if strat_name == "afinidad": 
+            nums, _ = self.generate_afinidad()
+            return nums
         if strat_name == "unica": 
             nums, _ = self.generate_unica()
             return nums
@@ -275,22 +307,32 @@ class GameGenerator:
             "caliente": (self.generate_caliente, self.select_sb_caliente),
             "fria": (self.generate_fria, self.select_sb_fria),
             "mixta": (self.generate_mixta, self.select_superballot),
+            "afinidad": (self.generate_afinidad, None), # Ya devuelve SB
             "balanceada": (self.generate_balanceada, lambda: random.randint(1, 16)),
             "elite": (self.generate_elite, self.select_superballot),
             "aleatoria": (self.generate_aleatoria, None)
         }
         
         for name, funcs in strats.items():
-            count = 30 if name in ["caliente", "fria", "balanceada", "mixta", "aleatoria", "elite"] else 1
-            for _ in range(count):
-                if name in ["unica", "aleatoria"]:
-                    nums, sb = funcs[0]()
-                else:
-                    nums = funcs[0]()
-                    sb = funcs[1]()
-                
-                juego = {"fecha_sorteo": fecha, "estrategia": name, "num1": nums[0], "num2": nums[1], "num3": nums[2], "num4": nums[3], "num5": nums[4], "num6": sb}
-                results["juegos"].append(juego)
+            if name == "afinidad":
+                # Lógica especial para 3 combinaciones maestras
+                seeds = self.hot_pool[:3]
+                for seed_num in seeds:
+                    nums, sb = self.generate_afinidad(seed=seed_num)
+                    juego = {"fecha_sorteo": fecha, "estrategia": name, "num1": nums[0], "num2": nums[1], "num3": nums[2], "num4": nums[3], "num5": nums[4], "num6": sb}
+                    results["juegos"].append(juego)
+                count = len(seeds)
+            else:
+                count = 30 if name in ["caliente", "fria", "balanceada", "mixta", "aleatoria", "elite"] else 1
+                for _ in range(count):
+                    if name in ["unica", "aleatoria"]:
+                        nums, sb = funcs[0]()
+                    else:
+                        nums = funcs[0]()
+                        sb = funcs[1]()
+                    
+                    juego = {"fecha_sorteo": fecha, "estrategia": name, "num1": nums[0], "num2": nums[1], "num3": nums[2], "num4": nums[3], "num5": nums[4], "num6": sb}
+                    results["juegos"].append(juego)
             
             print(f"✅ [{name.upper()}]: {count} juego(s) generado(s).")
 

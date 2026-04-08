@@ -16,7 +16,7 @@ export default function StrategySummary({ realStats, unicaStats, aleatoriaStats 
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       {/* Fila 1: ESTRATEGIA REAL */}
       <article className="card animate-in" style={{ padding: '0.5rem 0.8rem', borderLeft: '4px solid var(--primary)', background: 'rgba(59, 130, 246, 0.05)' }}>
-        <div className="card-title" style={{ fontSize: '0.6rem', marginBottom: '0.2rem' }}>ESTRATEGIA REAL (IA)</div>
+        <div className="card-title" style={{ fontSize: '0.6rem', marginBottom: '0.2rem' }}>ESTRATEGIA REAL</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
           <div>
             <span style={{ fontSize: '0.55rem', opacity: 0.6 }}>TOTAL</span>
@@ -31,7 +31,7 @@ export default function StrategySummary({ realStats, unicaStats, aleatoriaStats 
 
       {/* Fila 2: ESTRATEGIA ÚNICA */}
       <article className="card animate-in" style={{ padding: '0.5rem 0.8rem', borderLeft: '4px solid #f97316', background: 'rgba(249, 115, 22, 0.05)' }}>
-        <div className="card-title" style={{ fontSize: '0.6rem', marginBottom: '0.2rem' }}>ESTRATEGIA ÚNICA (PERSISTENCIA)</div>
+        <div className="card-title" style={{ fontSize: '0.6rem', marginBottom: '0.2rem' }}>ESTRATEGIA ÚNICA</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
           <div>
             <span style={{ fontSize: '0.55rem', opacity: 0.6 }}>TOTAL</span>
@@ -46,7 +46,7 @@ export default function StrategySummary({ realStats, unicaStats, aleatoriaStats 
 
       {/* Fila 3: AZAR / ALEATORIA */}
       <article className="card animate-in" style={{ padding: '0.5rem 0.8rem', borderLeft: '4px solid #64748b', background: 'rgba(100, 116, 139, 0.05)' }}>
-        <div className="card-title" style={{ fontSize: '0.6rem', marginBottom: '0.2rem' }}>AZAR (ALEATORIA)</div>
+        <div className="card-title" style={{ fontSize: '0.6rem', marginBottom: '0.2rem' }}>ESTRATEGIA ALEATORIA</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
           <div>
             <span style={{ fontSize: '0.55rem', opacity: 0.6 }}>TOTAL</span>
@@ -62,11 +62,11 @@ export default function StrategySummary({ realStats, unicaStats, aleatoriaStats 
       {/* Fila 4: COMPARACIÓN GLOBAL (VENTAJA COMPETITIVA) */}
       <article className="card animate-in" style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
          <div className="card-title" style={{ fontSize: '0.7rem', color: '#10b981', marginBottom: '0.5rem' }}>
-           <Sparkles size={14} /> VENTAJA COMPETITIVA (IA)
+           <Sparkles size={14} /> VENTAJA COMPETITIVA
          </div>
          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
-                <span>vs Azar</span>
+                <span>vs Aleatoria</span>
                 <span style={{ 
                   fontWeight: 'bold', 
                   color: (realStats.avg >= aleatoriaStats.avg) ? '#10b981' : '#ef4444' 

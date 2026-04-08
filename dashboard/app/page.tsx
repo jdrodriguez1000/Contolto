@@ -23,6 +23,7 @@ import FrequencyTable from '../components/FrequencyTable';
 import SuperballHeatmap from '../components/SuperballHeatmap';
 import AffinityCards from '../components/AffinityCards';
 import PerformanceInsight from '../components/PerformanceInsight';
+import AfinidadTab from '../components/AfinidadTab';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>('resultados');
@@ -78,9 +79,11 @@ export default function Home() {
             nextGames={nextGames}
           />
 
-          <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 3fr) minmax(280px, 1fr)', gap: '1rem', marginTop: '1rem' }}>
-            <SuccessChart data={compareData} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+          <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 3fr) minmax(280px, 1fr)', gap: '1rem', marginTop: '1rem', alignItems: 'stretch' }}>
+            <div style={{ height: '100%' }}>
+              <SuccessChart data={compareData} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', height: '100%' }}>
               <StrategySummary 
                 realStats={realStats}
                 unicaStats={unicaStats}
@@ -145,6 +148,10 @@ export default function Home() {
           <SuperballHeatmap data={sbStats} />
           <AffinityCards topPairs={topPairs} topTrios={topTrios} />
         </section>
+      )}
+
+      {activeTab === 'afinidad' && (
+        <AfinidadTab nextGames={nextGames} />
       )}
     </main>
   );

@@ -3,7 +3,8 @@ import {
   History, 
   Trophy, 
   BarChart3, 
-  Share2 
+  Share2,
+  Sparkles
 } from 'lucide-react';
 import { TabType } from '@/types';
 
@@ -21,24 +22,35 @@ export default function Tabs({ activeTab, setActiveTab }: TabsProps) {
       >
         <Activity size={16} /> RESULTADOS
       </button>
+
       <button 
         onClick={() => setActiveTab('historico')}
         className={`tab-button ${activeTab === 'historico' ? 'active' : ''}`}
       >
         <History size={16} /> HISTÓRICO
       </button>
+
       <button 
         onClick={() => setActiveTab('estrategias')}
         className={`tab-button ${activeTab === 'estrategias' ? 'active' : ''}`}
       >
         <Trophy size={16} /> ESTRATEGIAS
       </button>
+
       <button 
         onClick={() => setActiveTab('rendimiento')}
         className={`tab-button ${activeTab === 'rendimiento' ? 'active' : ''}`}
       >
         <BarChart3 size={16} /> RENDIMIENTO
       </button>
+
+      <button 
+        onClick={() => setActiveTab('afinidad')}
+        className={`tab-button ${activeTab === 'afinidad' ? 'active' : ''}`}
+      >
+        <Sparkles size={16} /> AFINIDAD
+      </button>
+
       <button 
         onClick={() => setActiveTab('analisis')}
         className={`tab-button ${activeTab === 'analisis' ? 'active' : ''}`}

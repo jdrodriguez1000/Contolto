@@ -22,5 +22,5 @@ UNICA        | Promedio: 0.58 | S.B. Ganadas: 1 | Total Juegos: 24
 FRIA         | Promedio: 0.51 | S.B. Ganadas: 4 | Total Juegos: 639
 BALANCEADA   | Promedio: 0.47 | S.B. Ganadas: 21 | Total Juegos: 639
 ==========================================================================================
-Reporte generado el: 2026-04-07 12:05:30
+Reporte generado el: 2026-04-08 11:00:58
 Nota: El reporte muestra cuales numeros especificos muerden la suerte.

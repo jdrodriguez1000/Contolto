@@ -1,10 +1,11 @@
 name: Contolto Automation
 
 on:
+
   schedule:
-    # 6:30 AM Colombia (COT, UTC-5) es 11:30 UTC
+    # 5:00 AM Colombia (COT, UTC-5) es 10:00 UTC
     # Martes (2), Jueves (4) y Domingos (0)
-    - cron: '30 11 * * 0,2,4'
+    - cron: '0 10 * * 0,2,4'
   workflow_dispatch: # Permite ejecutarlo manualmente desde GitHub si quieres
 
 jobs:

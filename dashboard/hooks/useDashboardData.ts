@@ -24,9 +24,11 @@ export function useDashboardData() {
   const [lastSorteosHistory, setLastSorteosHistory] = useState<any[]>([]);
   const [topPairs, setTopPairs] = useState<any[]>([]);
   const [topTrios, setTopTrios] = useState<any[]>([]);
+
   const [selectedCompanionNum, setSelectedCompanionNum] = useState<number | null>(null);
   const [affinityLinks, setAffinityLinks] = useState<any[]>([]);
   const [performanceMetrics, setPerformanceMetrics] = useState({ superiority: 0, efficiency: 0, consistency: 0 });
+  const [lastGameHits, setLastGameHits] = useState<any[]>([]);
 
   useEffect(() => {
     async function fetchJackpot() {
@@ -596,10 +598,37 @@ export function useDashboardData() {
 
             setTopPairs(Object.entries(pairCounts).map(([key, count]) => ({ nums: key.split('-').map(Number), count })).sort((a,b) => b.count - a.count).slice(0, 10));
             setTopTrios(Object.entries(trioCounts).map(([key, count]) => ({ nums: key.split('-').map(Number), count })).sort((a,b) => b.count - a.count).slice(0, 5));
+
             setAffinityLinks(Object.entries(pairCounts).filter(([, count]) => count >= 3).map(([key, count]) => {
                 const [a, b] = key.split('-').map(Number);
                 return { a, b, count };
             }));
+
+            // Calcular distribución del ÚLTIMO JUEGO CALIFICADO
+            if (rankData.length > 0) {
+              const lastScoredDate = rankData[0]?.juegos?.fecha_sorteo;
+              if (lastScoredDate) {
+                const lastScoredHits = rankData.filter(h => h.juegos?.fecha_sorteo === lastScoredDate);
+                const distribution: Record<string, any> = {};
+                
+                lastScoredHits.forEach(h => {
+                  let est = (h.juegos?.estrategia || '').toUpperCase().trim();
+                  if (!distribution[est]) {
+                    distribution[est] = { strategy: est, hits: [0,0,0,0,0,0,0], sb: 0, total: 0 };
+                  }
+                  const totalHits = (h.aciertos_principales || 0) + (h.acierto_superbalota ? 1 : 0);
+                  if (totalHits >= 0 && totalHits <= 6) {
+                    distribution[est].hits[totalHits]++;
+                  }
+                  if (h.acierto_superbalota) {
+                    distribution[est].sb++;
+                  }
+                  distribution[est].total++;
+                });
+                
+                setLastGameHits(Object.values(distribution).sort((a,b) => a.strategy.localeCompare(b.strategy)));
+              }
+            }
         }
 
       } catch (err) {
@@ -695,8 +724,10 @@ export function useDashboardData() {
     topTrios,
     selectedCompanionNum,
     setSelectedCompanionNum,
+
     affinityLinks,
     clusterAnalysis,
-    performanceMetrics
+    performanceMetrics,
+    lastGameHits
   };
 }

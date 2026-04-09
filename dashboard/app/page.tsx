@@ -23,7 +23,11 @@ import FrequencyTable from '../components/FrequencyTable';
 import SuperballHeatmap from '../components/SuperballHeatmap';
 import AffinityCards from '../components/AffinityCards';
 import PerformanceInsight from '../components/PerformanceInsight';
+
+
+
 import AfinidadTab from '../components/AfinidadTab';
+import HitDistributionChart from '../components/HitDistributionChart';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>('resultados');
@@ -50,8 +54,10 @@ export default function Home() {
     selectedCompanionNum,
     setSelectedCompanionNum,
     affinityLinks,
+
     clusterAnalysis,
-    performanceMetrics
+    performanceMetrics,
+    lastGameHits
   } = dashboardData;
 
   if (loading) {
@@ -89,8 +95,13 @@ export default function Home() {
                 unicaStats={unicaStats}
                 aleatoriaStats={aleatoriaStats}
               />
+
             </div>
           </section>
+
+
+
+          <HitDistributionChart data={lastGameHits} />
         </>
       )}
 

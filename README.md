@@ -32,7 +32,9 @@ dashboard/
     └── storage.ts                  # Persistencia en localStorage
 ```
 
-La jugada se guarda en `localStorage` bajo la clave `contolto:jugada`, así que vive en el navegador de cada dispositivo. No hay estado en el servidor.
+La jugada se guarda en `localStorage` bajo la clave `contolto:jugada`, así que vive en el navegador de cada dispositivo. No hay estado en el servidor: dos dispositivos distintos tienen jugadas distintas.
+
+La primera vez que el resultado corresponde al sorteo de la jugada, se guarda junto a ella. Así la comparación sigue disponible cuando baloto.com avanza al sorteo siguiente. Guardar una jugada nueva descarta la anterior con su resultado: la app guarda una jugada, no un historial.
 
 ## Uso
 
@@ -43,6 +45,12 @@ npm run dev
 ```
 
 Abre http://localhost:3000
+
+## Despliegue
+
+En Vercel: [contolto.vercel.app](https://contolto.vercel.app). Cada push a `main` despliega solo.
+
+El **Root Directory** del proyecto es `dashboard/`, no la raíz del repositorio. No hay variables de entorno.
 
 ---
 *Juega con responsabilidad.*

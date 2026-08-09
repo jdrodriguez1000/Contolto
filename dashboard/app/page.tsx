@@ -203,7 +203,7 @@ export default function Home() {
               <>
                 <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
                   {play.nums.map((n, i) => (
-                    <span key={i} className="number-badge" style={{ width: '36px', height: '36px', fontSize: '1rem', border: '1.5px solid var(--card-border)', color: 'var(--foreground-muted)' }}>
+                    <span key={i} className="number-badge" style={{ width: '36px', height: '36px', fontSize: '1rem', border: '1.5px solid #3b82f6', color: 'var(--foreground-muted)' }}>
                       {n}
                     </span>
                   ))}

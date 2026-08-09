@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Activity, Target, Sparkles, Clock, CalendarX } from 'lucide-react';
+import { Activity, Target, Sparkles, Clock, CalendarX, Archive } from 'lucide-react';
 import { countHits, type DrawResult, type Play } from '@/lib/draw';
-import { readPlay } from '@/lib/storage';
+import { attachResult, readSaved, type SavedPlay } from '@/lib/storage';
 import SuggestedPlay from '@/components/SuggestedPlay';
 
 interface Resultado {
@@ -86,27 +86,42 @@ function ComparisonRow({ label, play, draw }: { label: string; play: Play; draw:
 
 export default function Home() {
   const [resultado, setResultado] = useState<Resultado>({ baloto: null, revancha: null });
-  const [play, setPlay] = useState<Play | null>(null);
+  const [saved, setSaved] = useState<SavedPlay | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadJugada = useCallback(() => {
-    setPlay(readPlay());
+    setSaved(readSaved());
   }, []);
 
   useEffect(() => {
     async function init() {
       setLoading(true);
+
+      let res: Resultado = { baloto: null, revancha: null };
       try {
-        const res = await fetch('/api/resultado');
-        if (res.ok) setResultado(await res.json());
+        const r = await fetch('/api/resultado');
+        if (r.ok) res = await r.json();
       } catch {
-        setResultado({ baloto: null, revancha: null });
+        // sin conexión o baloto.com caído: seguimos sin resultado
       }
-      loadJugada();
+      setResultado(res);
+
+      // La primera vez que el resultado corresponde al sorteo de la jugada,
+      // se guarda junto a ella. Si no, la comparación se perdería en cuanto
+      // baloto.com pasara a mostrar el sorteo siguiente.
+      let s = readSaved();
+      const fecha = res.baloto?.fecha ?? res.revancha?.fecha ?? null;
+      if (s && !s.result && fecha && fecha === s.play.fecha_sorteo) {
+        const result = { baloto: res.baloto, revancha: res.revancha };
+        attachResult(result);
+        s = { play: s.play, result };
+      }
+      setSaved(s);
+
       setLoading(false);
     }
     init();
-  }, [loadJugada]);
+  }, []);
 
   if (loading) {
     return (
@@ -121,12 +136,17 @@ export default function Home() {
 
   const { baloto, revancha } = resultado;
   const fechaRef = baloto?.fecha ?? revancha?.fecha ?? null;
-  // Solo comparamos si el resultado cargado es exactamente el del sorteo
-  // para el que se guardó la jugada.
-  const yaSorteada = !!(play && fechaRef && fechaRef === play.fecha_sorteo);
-  // El sorteo objetivo ya pasó, pero el resultado que tenemos es de otro más
-  // reciente: no hay contra qué comparar sin inventar aciertos.
-  const vencida = !!(play && fechaRef && fechaRef > play.fecha_sorteo);
+  const play = saved?.play ?? null;
+
+  // El resultado en vivo sirve si es el del sorteo de la jugada. Si baloto.com
+  // ya avanzó, caemos al que quedó congelado cuando sí correspondía.
+  const enVivo = !!(play && fechaRef && fechaRef === play.fecha_sorteo);
+  const comparar = enVivo ? resultado : saved?.result ?? null;
+  const yaSorteada = !!(play && comparar);
+  const congelado = !!(comparar && !enVivo);
+  // El sorteo ya pasó, nunca llegamos a ver su resultado y baloto.com ya
+  // avanzó: no hay contra qué comparar sin inventar aciertos.
+  const vencida = !!(play && fechaRef && fechaRef > play.fecha_sorteo && !comparar);
 
   return (
     <main className="dashboard-container" style={{ maxWidth: '640px', margin: '0 auto', padding: '0.75rem 1rem' }}>
@@ -171,8 +191,13 @@ export default function Home() {
             </p>
           ) : yaSorteada ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              {baloto && <ComparisonRow label="BALOTO" play={play} draw={baloto} />}
-              {revancha && <ComparisonRow label="REVANCHA" play={play} draw={revancha} />}
+              {comparar!.baloto && <ComparisonRow label="BALOTO" play={play} draw={comparar!.baloto} />}
+              {comparar!.revancha && <ComparisonRow label="REVANCHA" play={play} draw={comparar!.revancha} />}
+              {congelado && (
+                <p style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)', opacity: 0.7, textAlign: 'center', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                  <Archive size={12} /> Resultado guardado. Arriba ya se muestra un sorteo más reciente.
+                </p>
+              )}
             </div>
           ) : (
               <>

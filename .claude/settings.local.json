@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python main.py)",
+      "Bash(python -c ' *)",
+      "PowerShell(npx tsc --noEmit -p dashboard/tsconfig.json 2>&1 | Select-Object -First 40)",
+      "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 40)",
+      "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 30)",
+      "Bash(npx tsc *)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(grep -q \"Ready\\\\|started server\\\\|Local:\" /tmp/next-dev.log)",
+      "Bash(break)",
+      "Read(//tmp/**)",
+      "Bash(curl -s --max-time 30 http://localhost:3000/api/resultado)",
+      "Bash(curl -s --max-time 15 http://localhost:3000/api/jugada)",
+      "Bash(curl -s --max-time 15 -X POST http://localhost:3000/api/jugada -H \"Content-Type: application/json\" -d '{\"nums\":[5,17,22,30,41],\"sb\":7,\"fecha_sorteo\":\"2026-06-10\"}')",
+      "Bash(curl -s http://localhost:3000/api/jugada)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" --max-time 30 http://localhost:3000/)",
+      "Bash(curl -s --max-time 60 http://localhost:3000/api/resultado)",
+      "Bash(curl -s --max-time 60 http://localhost:3001/api/resultado)",
+      "Bash(taskkill //F //PID 21196)",
+      "Bash(tasklist //FI \"IMAGENAME eq node.exe\")",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //F //PID 6676)",
+      "Bash(cat data/jugada.json)",
+      "Bash(ls -la data)",
+      "Bash(curl -s -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36\" https://www.baloto.com/resultados -o /tmp/baloto.html -w \"HTTP %{http_code} size %{size_download}\\\\n\" --max-time 30)",
+      "Read(//c/tmp/**)",
+      "Bash(curl -s -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36\" https://www.baloto.com/resultados -o b.html -w \"HTTP %{http_code} size %{size_download}\\\\n\" --max-time 30)",
+      "Bash(python3 -)",
+      "Bash(awk '/id=\"results-table\"/{f=1} f{print} /\\\\/table>/{if\\(f\\)exit}')",
+      "Bash(grep -oiE '\\\\$ ?[0-9][0-9.,]*\\( millones| mil millones\\)?')",
+      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\('next',p.dependencies.next,'| react',p.dependencies.react\\);console.log\\('scripts',JSON.stringify\\(p.scripts\\)\\)\")",
+      "Bash(awk '/title-next-contest/{p=1} p{print} /next-context-millions/{c++; if\\(c>=2\\)exit}')",
+      "Bash(grep -vE '^</?\\(div|span\\)>$')",
+      "Bash(echo \"EXIT $?\")"
+    ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true
+  }
+}

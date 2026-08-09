@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Sparkles, Dices, CalendarDays, Check, Loader2 } from 'lucide-react';
+import { Sparkles, Dices, CalendarDays, Check } from 'lucide-react';
 import {
   excludedFromDraws,
   generateHonestPlay,
@@ -10,8 +10,9 @@ import {
   type DrawResult,
   type Play,
 } from '@/lib/draw';
+import { savePlay as persistPlay } from '@/lib/storage';
 
-type SaveState = 'idle' | 'saving' | 'saved' | 'error';
+type SaveState = 'idle' | 'saved' | 'error';
 
 interface Props {
   onSaved?: () => void;
@@ -44,19 +45,14 @@ export default function SuggestedPlay({ onSaved, baloto, revancha }: Props) {
     setSaveState('idle');
   }
 
-  async function savePlay() {
+  function savePlay() {
     if (!play) return;
-    setSaveState('saving');
     try {
-      const res = await fetch('/api/jugada', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(play),
-      });
-      if (!res.ok) throw new Error('Error al guardar');
+      persistPlay(play);
       setSaveState('saved');
       onSaved?.();
     } catch (e) {
+      // localStorage puede fallar en modo incógnito o con la cuota llena
       console.error('Error al guardar la jugada:', e);
       setSaveState('error');
     }
@@ -102,13 +98,12 @@ export default function SuggestedPlay({ onSaved, baloto, revancha }: Props) {
       <div style={{ display: 'flex', justifyContent: 'center', gap: '0.6rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
         <button
           onClick={regenerate}
-          disabled={saveState === 'saving'}
           style={{
             display: 'flex', alignItems: 'center', gap: '0.5rem',
             padding: '0.55rem 1.1rem', borderRadius: '10px',
             background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)',
             color: 'rgba(255,255,255,0.8)', fontSize: '0.8rem', fontWeight: 600,
-            cursor: saveState === 'saving' ? 'default' : 'pointer',
+            cursor: 'pointer',
           }}
         >
           <Dices size={15} /> Generar Juego
@@ -116,7 +111,7 @@ export default function SuggestedPlay({ onSaved, baloto, revancha }: Props) {
 
         <button
           onClick={savePlay}
-          disabled={!play || saveState === 'saving' || saveState === 'saved'}
+          disabled={!play || saveState === 'saved'}
           style={{
             display: 'flex', alignItems: 'center', gap: '0.5rem',
             padding: '0.55rem 1.25rem', borderRadius: '10px',
@@ -124,11 +119,10 @@ export default function SuggestedPlay({ onSaved, baloto, revancha }: Props) {
             border: '1px solid #cbd5e1',
             color: saveState === 'saved' ? '#cbd5e1' : '#1e293b',
             fontSize: '0.8rem', fontWeight: 700,
-            cursor: saveState === 'saving' || saveState === 'saved' ? 'default' : 'pointer',
+            cursor: saveState === 'saved' ? 'default' : 'pointer',
             opacity: !play ? 0.5 : 1,
           }}
         >
-          {saveState === 'saving' && <><Loader2 size={15} className="animate-spin" /> Guardando…</>}
           {saveState === 'saved' && <><Check size={15} /> Guardada para el sorteo</>}
           {saveState === 'idle' && <><Check size={15} /> Mi Jugada</>}
           {saveState === 'error' && <>Reintentar</>}

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Activity, Target, Sparkles, Clock, CalendarX } from 'lucide-react';
 import { countHits, type DrawResult, type Play } from '@/lib/draw';
+import { readPlay } from '@/lib/storage';
 import SuggestedPlay from '@/components/SuggestedPlay';
 
 interface Resultado {
@@ -88,14 +89,8 @@ export default function Home() {
   const [play, setPlay] = useState<Play | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadJugada = useCallback(async () => {
-    try {
-      const res = await fetch('/api/jugada', { cache: 'no-store' });
-      const data = await res.json();
-      setPlay(data.play ?? null);
-    } catch {
-      setPlay(null);
-    }
+  const loadJugada = useCallback(() => {
+    setPlay(readPlay());
   }, []);
 
   useEffect(() => {
@@ -107,7 +102,7 @@ export default function Home() {
       } catch {
         setResultado({ baloto: null, revancha: null });
       }
-      await loadJugada();
+      loadJugada();
       setLoading(false);
     }
     init();

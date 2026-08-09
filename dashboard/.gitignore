@@ -43,6 +43,3 @@ next-env.d.ts
 # local logs and envs
 lints.txt
 .venv
-
-# jugada guardada localmente (estado del usuario)
-/data/jugada.json

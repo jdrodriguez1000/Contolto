@@ -137,6 +137,25 @@ export function getNextDrawDate(): Date {
   return new Date(y, m - 1, d);
 }
 
+/**
+ * Sorteos a los que se puede asignar una jugada ingresada a mano: los
+ * `pasados` más recientes ya realizados, más el próximo. En orden ascendente.
+ */
+export function listDrawDates(pasados = 4): string[] {
+  const { y, m, d } = bogotaNow();
+  const proximo = toYMD(getNextDrawDate());
+
+  const fechas: string[] = [];
+  for (let i = -28; i <= 7; i++) {
+    const cand = new Date(y, m - 1, d + i);
+    if (DRAW_DAYS.includes(cand.getDay())) fechas.push(toYMD(cand));
+  }
+
+  const idx = fechas.indexOf(proximo);
+  if (idx < 0) return [proximo];
+  return fechas.slice(Math.max(0, idx - pasados), idx + 1);
+}
+
 /** Compara una jugada contra el resultado: aciertos principales y super balota. */
 export function countHits(play: Play, result: DrawResult) {
   const mainHits = play.nums.filter((n) => result.nums.includes(n));

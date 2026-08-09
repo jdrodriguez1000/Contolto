@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Activity, Target, Sparkles, Clock, CalendarX } from 'lucide-react';
+import { Activity, Target, Sparkles, Clock, CalendarX, Pencil } from 'lucide-react';
 import { countHits, type DrawResult, type Play } from '@/lib/draw';
 import { readPlay } from '@/lib/storage';
 import SuggestedPlay from '@/components/SuggestedPlay';
+import ManualPlay from '@/components/ManualPlay';
 
 interface Resultado {
   baloto: DrawResult | null;
@@ -88,6 +89,7 @@ export default function Home() {
   const [resultado, setResultado] = useState<Resultado>({ baloto: null, revancha: null });
   const [play, setPlay] = useState<Play | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editando, setEditando] = useState(false);
 
   const loadJugada = useCallback(() => {
     setPlay(readPlay());
@@ -158,18 +160,44 @@ export default function Home() {
         </article>
 
         {/* BLOQUE 2: Tu jugada comparada contra ambos sorteos */}
-        {play && (
-          <article className="card animate-in" style={{ padding: '1rem 1.25rem', borderTop: '4px solid #3b82f6', animationDelay: '0.15s' }}>
-            <h2 style={{ fontSize: '0.85rem', color: 'var(--foreground-muted)', margin: '0 0 0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', letterSpacing: '0.05em' }}>
-              <Target size={18} style={{ color: '#3b82f6' }} /> TU JUGADA · sorteo {formatFecha(play.fecha_sorteo)}
+        <article className="card animate-in" style={{ padding: '1rem 1.25rem', borderTop: '4px solid #3b82f6', animationDelay: '0.15s' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem', flexWrap: 'wrap' }}>
+            <h2 style={{ fontSize: '0.85rem', color: 'var(--foreground-muted)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', letterSpacing: '0.05em' }}>
+              <Target size={18} style={{ color: '#3b82f6' }} />
+              TU JUGADA{play && !editando ? ` · sorteo ${formatFecha(play.fecha_sorteo)}` : ''}
             </h2>
+            {!editando && !play && (
+              <button
+                onClick={() => setEditando(true)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '0.35rem',
+                  padding: '0.35rem 0.7rem', borderRadius: '8px',
+                  background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.4)',
+                  color: '#3b82f6', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer',
+                }}
+              >
+                <Pencil size={13} /> Ingresar mi jugada
+              </button>
+            )}
+          </div>
 
-            {yaSorteada ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                {baloto && <ComparisonRow label="BALOTO" play={play} draw={baloto} />}
-                {revancha && <ComparisonRow label="REVANCHA" play={play} draw={revancha} />}
-              </div>
-            ) : (
+          {editando ? (
+            <ManualPlay
+              onSaved={() => { setEditando(false); loadJugada(); }}
+              onCancel={() => setEditando(false)}
+            />
+          ) : !play ? (
+            <p style={{ fontSize: '0.82rem', color: 'var(--foreground-muted)', textAlign: 'center', margin: '0.4rem 0', lineHeight: 1.6 }}>
+              Todavía no has registrado ninguna jugada. Ingresa la que compraste
+              con <strong>Ingresar mi jugada</strong>, o genera una abajo y guárdala.
+              Cuando salga el sorteo, aquí verás tus aciertos.
+            </p>
+          ) : yaSorteada ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              {baloto && <ComparisonRow label="BALOTO" play={play} draw={baloto} />}
+              {revancha && <ComparisonRow label="REVANCHA" play={play} draw={revancha} />}
+            </div>
+          ) : (
               <>
                 <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
                   {play.nums.map((n, i) => (
@@ -195,8 +223,7 @@ export default function Home() {
                 </p>
               </>
             )}
-          </article>
-        )}
+        </article>
 
         {/* BLOQUE 3: Generar la próxima jugada */}
         <SuggestedPlay onSaved={loadJugada} baloto={baloto} revancha={revancha} />
